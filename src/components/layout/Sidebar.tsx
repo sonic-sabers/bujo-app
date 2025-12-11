@@ -1,7 +1,6 @@
 "use client";
 
 import { ComponentCategory } from "@/types/ui-library";
-import { Badge } from "@/components/ui/Badge";
 
 export interface SidebarItem {
   id: string;
@@ -51,16 +50,6 @@ export function Sidebar({
               `}
             >
               <span className="capitalize relative z-10">{item.label}</span>
-              {item.badge === "new" && (
-                <Badge variant="success" size="sm">
-                  NEW
-                </Badge>
-              )}
-              {item.badge === "coming-next" && (
-                <Badge variant="warning" size="sm">
-                  Soon
-                </Badge>
-              )}
             </button>
           ))}
         </nav>
