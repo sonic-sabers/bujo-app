@@ -81,22 +81,22 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
           opacity: 1,
           scale: 1,
           y: 0,
-          height: isExpanded ? 600 : 72,
+          height: isExpanded ? "auto" : "auto",
         }}
         exit={{ opacity: 0, scale: 0.8, y: 20 }}
         transition={{
           opacity: { type: "spring", stiffness: 300, damping: 25 },
           scale: { type: "spring", stiffness: 300, damping: 25 },
           y: { type: "spring", stiffness: 300, damping: 25 },
-          height: { duration: 0.5, ease: "easeInOut" },
         }}
         className="fixed right-6 z-40 w-96 max-w-[calc(100vw-3rem)] md:w-96 bg-[#00b4d8] rounded-2xl shadow-2xl flex flex-col overflow-hidden p-[2px]"
         style={{
           bottom: `${Math.max(96, keyboardHeight + 16)}px`,
-          maxHeight:
-            keyboardHeight > 0
+          maxHeight: isExpanded
+            ? keyboardHeight > 0
               ? `calc(100vh - ${keyboardHeight + 32}px)`
-              : "calc(100vh - 8rem)",
+              : "600px"
+            : "auto",
         }}
         onWheel={(e) => e.stopPropagation()}
         role="dialog"
