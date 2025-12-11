@@ -41,27 +41,36 @@ _Active state with sidebar navigation_
 
 ### Chat Widget
 
-![Closed Chat](./public/Closed%20Chat.png)
-_Floating chat button in bottom-right corner_
 
 ![Chat Default](./public/Chat%20default.png)
+
 _Chat window with welcome message and quick replies_
 
 ![Chat Answer](./public/Chat%20Answer.png)
+
 _AI streaming response with typing indicator_
 
 ![Chat Result 1](./public/chat%20result%201.png)
+
 _Component examples rendered in chat (buttons)_
 
 ![Search Result 1](./public/Search%20Result1.png)
+
 _Search query with component detection_
 
 ![Search Result 2](./public/Search%20result%202.png)
+
 _Live component rendering after streaming completes_
+
+
+![Closed Chat](./public/Closed%20Chat.png)
+
+_Floating chat button in bottom-right corner_
 
 ### Mobile View
 
 ![Mobile View](./public/MoobileView.png)
+
 _Responsive design on mobile devices_
 
 ---
