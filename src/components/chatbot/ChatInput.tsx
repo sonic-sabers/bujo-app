@@ -65,7 +65,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type and press [enter]"
-          className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none text-xs md:text-sm"
+          className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none text-base"
           aria-label="Chat message input"
           aria-invalid={!!validationError}
           aria-describedby={validationError ? "input-error" : undefined}

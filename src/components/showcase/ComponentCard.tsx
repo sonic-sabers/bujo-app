@@ -44,7 +44,7 @@ export function ComponentCard({
           borderColor: isActive ? "#00b4d8" : "transparent",
           boxShadow: isActive
             ? "0 20px 25px -5px rgba(0, 180, 216, 0.2), 0 0 0 2px rgba(0, 180, 216, 0.2)"
-            : "0 1px 3px 3px rgba(0, 0, 0, 0.1)",
+            : "",
         }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="h-full rounded-lg border-2"
