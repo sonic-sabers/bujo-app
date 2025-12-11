@@ -14,8 +14,10 @@ export function InputExamples({ hideHeader = false }: InputExamplesProps) {
       )}
 
       <div
-        className={` pb-4 space-y-3 w-full ${
-          hideHeader ? "max-h-[300px] pb-6 overflow-hidden px-6 " : ""
+        className={`pb-4 space-y-2 sm:space-y-3 w-full ${
+          hideHeader
+            ? "max-h-[350px] sm:max-h-[300px] pb-6 overflow-hidden px-4 sm:px-6"
+            : ""
         }`}
       >
         <div>
@@ -25,7 +27,7 @@ export function InputExamples({ hideHeader = false }: InputExamplesProps) {
           <input
             type="text"
             placeholder="Enter text..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00b4d8] focus:border-[#00b4d8] placeholder:text-gray-400 text-gray-900 bg-white"
+            className="w-full px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00b4d8] focus:border-[#00b4d8] placeholder:text-gray-400 text-gray-900 bg-white text-sm"
           />
         </div>
 
@@ -37,10 +39,10 @@ export function InputExamples({ hideHeader = false }: InputExamplesProps) {
             <input
               type="search"
               placeholder="Search..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00b4d8] focus:border-[#00b4d8] placeholder:text-gray-400 text-gray-900 bg-white"
+              className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00b4d8] focus:border-[#00b4d8] placeholder:text-gray-400 text-gray-900 bg-white text-sm"
             />
             <svg
-              className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"
+              className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 absolute left-2.5 sm:left-3 top-2 sm:top-2.5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -62,7 +64,7 @@ export function InputExamples({ hideHeader = false }: InputExamplesProps) {
           <input
             type="email"
             placeholder="email@example.com"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00b4d8] focus:border-[#00b4d8] placeholder:text-gray-400 text-gray-900 bg-white"
+            className="w-full px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00b4d8] focus:border-[#00b4d8] placeholder:text-gray-400 text-gray-900 bg-white text-sm"
           />
         </div>
 
@@ -73,7 +75,7 @@ export function InputExamples({ hideHeader = false }: InputExamplesProps) {
           <input
             type="text"
             placeholder="Invalid input"
-            className="w-full px-4 py-2 border-2 border-red-500 rounded-lg focus:outline-none focus:ring-1 focus:ring-red-500 placeholder:text-gray-400 text-gray-900 bg-white"
+            className="w-full px-3 py-1.5 sm:px-4 sm:py-2 border-2 border-red-500 rounded-lg focus:outline-none focus:ring-1 focus:ring-red-500 placeholder:text-gray-400 text-gray-900 bg-white text-sm"
           />
           <p className="text-xs text-red-600 mt-1">This field is required</p>
         </div>

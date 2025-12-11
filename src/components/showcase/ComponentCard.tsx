@@ -61,7 +61,7 @@ export function ComponentCard({
           onClick={onClick}
         >
           <div
-            className={`p-4 sm:p-6 bg-gradient-to-br min-h-[180px] sm:min-h-[200px] flex items-center justify-center relative transition-all duration-300 overflow-hidden ${
+            className={`p-4 sm:p-6 bg-gradient-to-br min-h-[240px] sm:min-h-[200px] flex items-center justify-center relative transition-all duration-300 overflow-hidden ${
               isActive
                 ? "from-[#00b4d8]/10 to-[#00b4d8]/20"
                 : "from-gray-50 to-gray-100/50 group-hover:from-[#00b4d8]/5 group-hover:to-[#00b4d8]/10"
@@ -71,9 +71,9 @@ export function ComponentCard({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.4 }}
-              className="w-full max-w-full scale-[0.6] sm:scale-[0.7] md:scale-[0.75] lg:scale-[0.8] xl:scale-90"
+              className="w-full flex items-center justify-center scale-90 sm:scale-[0.75] md:scale-[0.8] lg:scale-[0.85] xl:scale-95"
             >
-              {preview}
+              <div className="max-w-full overflow-hidden">{preview}</div>
             </motion.div>
           </div>
 
