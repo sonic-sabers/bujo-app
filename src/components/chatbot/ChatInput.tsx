@@ -15,8 +15,9 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Auto-focus input when component mounts
-    if (!disabled && inputRef.current) {
+    // Auto-focus input when component mounts (only on desktop)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!disabled && inputRef.current && !isMobile) {
       inputRef.current.focus();
     }
   }, [disabled]);

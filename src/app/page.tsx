@@ -54,13 +54,13 @@ export default function Home() {
           onCategoryClick={setActiveCategory}
         />
 
-        <main className="flex-1 p-6 md:p-8 lg:p-12">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-12">
           <div className="max-w-7xl mx-auto animate-fade-in">
-            <div className="mb-10 md:mb-12">
-              <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 pb-1">
+            <div className="mb-8 md:mb-10 lg:mb-12">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 md:mb-4 pb-1">
                 Bujo UI Components
               </h1>
-              <p className="text-base md:text-lg text-gray-600 max-w-3xl leading-relaxed">
+              <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-3xl leading-relaxed">
                 Explore the whole collection of responsive, accessible
                 components built with React and HTML ready to be used on your
                 website or app.

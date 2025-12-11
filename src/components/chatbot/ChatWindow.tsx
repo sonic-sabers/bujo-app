@@ -9,6 +9,7 @@ import { QuickReplies } from "./QuickReplies";
 import { ChatErrorBoundary } from "./ErrorBoundary";
 import { useChatState } from "@/hooks/useChatState";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 
 interface ChatWindowProps {
   onClose: () => void;
@@ -34,6 +35,7 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
   ];
   const [isExpanded, setIsExpanded] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const keyboardHeight = useKeyboardHeight();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,9 +90,13 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
           y: { type: "spring", stiffness: 300, damping: 25 },
           height: { duration: 0.5, ease: "easeInOut" },
         }}
-        className="fixed bottom-24 right-6 z-40 w-96 max-w-[calc(100vw-3rem)] md:w-96 bg-[#00b4d8] rounded-2xl shadow-2xl flex flex-col overflow-hidden p-[2px]"
+        className="fixed right-6 z-40 w-96 max-w-[calc(100vw-3rem)] md:w-96 bg-[#00b4d8] rounded-2xl shadow-2xl flex flex-col overflow-hidden p-[2px]"
         style={{
-          maxHeight: "calc(100vh - 8rem)",
+          bottom: `${Math.max(96, keyboardHeight + 16)}px`,
+          maxHeight:
+            keyboardHeight > 0
+              ? `calc(100vh - ${keyboardHeight + 32}px)`
+              : "calc(100vh - 8rem)",
         }}
         onWheel={(e) => e.stopPropagation()}
         role="dialog"
@@ -100,13 +106,13 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
         <div className="bg-white rounded-[calc(1rem-2px)] h-full flex flex-col overflow-hidden">
           {/* Header */}
           <div
-            className="bg-[#00b4d8] p-3 md:p-4 flex items-center justify-between rounded-t-[calc(1rem-2px)]"
+            className="bg-[#00b4d8] p-4 flex items-center justify-between rounded-t-[calc(1rem-2px)]"
             role="banner"
           >
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-10 h-10 md:w-11 md:h-11 bg-white rounded-full flex items-center justify-center shadow-md">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md flex-shrink-0">
                 <svg
-                  className="w-5 h-5 text-[#00b4d8]"
+                  className="w-6 h-6 text-[#00b4d8]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -119,17 +125,17 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
                   />
                 </svg>
               </div>
-              <div>
-                <h3 className="font-bold text-white text-sm md:text-base">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-white text-lg leading-tight">
                   Bujo Assistant
                 </h3>
-                <p className="text-[10px] md:text-xs text-white/90">
+                <p className="text-xs text-white/90 leading-tight mt-0.5">
                   Ask me about components
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 md:gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
