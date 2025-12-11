@@ -9,7 +9,7 @@ export interface HeaderProps {
 }
 
 export function Header({
-  title = "Boju UI Components",
+  title = "Bujo UI Components",
   subtitle = "Explore the whole collection of responsive, accessible components built with React and HTML ready to be used on your website or app.",
 }: HeaderProps) {
   return (
@@ -53,7 +53,7 @@ export function Header({
             </motion.div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-                Boju<span className="text-[#00b4d8]">UI</span>
+                Bujo&nbsp;<span className="text-[#00b4d8]">UI</span>
               </h1>
               <p className="text-xs text-gray-500 font-medium">v3.3.0</p>
             </div>

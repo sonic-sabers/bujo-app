@@ -1,4 +1,4 @@
-# BojuUI - Streamable UI Chatbot
+# Bujo UI - Streamable UI Chatbot
 
 > A production-ready, embeddable chat widget that acts as a "UI librarian" for design systems. Built with Next.js 14, TypeScript, Framer Motion, and GSAP.
 
@@ -75,18 +75,19 @@ _Responsive design on mobile devices_
 
 ## 📋 Table of Contents
 
+- [Quick Start](#-quick-start)
 - [Screenshots](#-screenshots)
 - [Features](#-features)
 - [Architecture](#-architecture)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
 - [How It Works](#-how-it-works)
-- [UX Enhancements](#-ux-enhancements)
-- [Improvements & Quality](#-improvements--quality)
+- [UX](#-ux)
 - [Usage Guide](#-usage-guide)
-- [Customization](#-customization)
-- [Testing](#-testing)
-- [Future Enhancements](#-future-enhancements)
+- [Architecture Decisions](#-architecture-decisions)
+- [Performance](#-performance)
+- [Bonus Features](#-bonus-features)
+- [Live Demo](#-live-demo)
 
 ---
 
@@ -140,20 +141,20 @@ _Responsive design on mobile devices_
 
 ### System Overview
 
-BojuUI follows a component-based architecture with clear separation of concerns:
+Bujo UI follows a component-based architecture with clear separation of concerns:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │                          Page Layout                              │
 │  ┌────────────────────────────────────────────────────────────┐  │
 │  │                        Header                               │  │
-│  │  (BojuUI logo, Search, Social links, Components nav)       │  │
+│  │  (Bujo UI logo, Search, Social links, Components nav)       │  │
 │  └────────────────────────────────────────────────────────────┘  │
 │                                                                   │
 │  ┌──────────┐  ┌───────────────────────────────────────────┐   │
 │  │ Sidebar  │  │          Main Content Area                 │   │
 │  │          │  │  ┌──────────────────────────────────────┐  │   │
-│  │ Buttons  │  │  │  Boju Components (Hero Section)      │  │   │
+│  │ Buttons  │  │  │  Bujo UI Components (Hero Section)      │  │   │
 │  │ Cards    │  │  └──────────────────────────────────────┘  │   │
 │  │ Input    │  │                                             │   │
 │  │ Fields   │  │  ┌─────────────────────────────────────┐   │   │
@@ -399,7 +400,7 @@ simulateStreamingResponse(
 
 ---
 
-## 🎨 UX Enhancements
+## 🎨 UX
 
 ### Design System Improvements
 
@@ -512,45 +513,6 @@ simulateStreamingResponse(
 
 ---
 
-## 🏆 Improvements & Quality
-
-### Tech Lead Assessment: 10/10
-
-All identified issues from the initial assessment have been addressed:
-
-#### **1. Component Structure & State** (8.5 → 10/10)
-
-**Improvements**:
-
-- ✅ Created `useChatState` custom hook - Separated business logic
-- ✅ Added `ChatErrorBoundary` - Prevents crashes, provides recovery
-- ✅ Refactored ChatWindow - 60 lines shorter, cleaner architecture
-
-#### **2. Data Modeling** (9 → 10/10)
-
-**Improvements**:
-
-- ✅ Consolidated types - Removed duplicate `StreamChunkData`
-- ✅ Created validation utilities - `src/lib/validation.ts`
-- ✅ Type-safe validation - Proper error handling with typed results
-
-#### **3. Streaming Updates & Performance** (9.5 → 10/10)
-
-**Improvements**:
-
-- ✅ React.memo optimization - Added to `ChatMessage` and `ComponentRenderer`
-- ✅ Enhanced error handling - Retry functionality, visual error states
-- ✅ Stream cancellation - Proper cleanup on unmount
-
-#### **4. Accessibility** (NEW - 10/10)
-
-**Features**:
-
-- ✅ ARIA labels - `role="dialog"`, `aria-label`, `aria-live`, `aria-expanded`
-- ✅ Keyboard navigation - Escape to close, Cmd/Ctrl+K to clear
-- ✅ Auto-focus management - Input focuses automatically
-- ✅ Screen reader support - Proper semantic roles and live regions
-
 ### Key Benefits
 
 **For Developers**:
@@ -613,138 +575,6 @@ export default function Page() {
 
 ---
 
-## 🎨 Customization
-
-### Change Position
-
-```typescript
-// In UiLibraryAssistant.tsx
-className = "fixed bottom-6 right-6"; // Adjust these values
-```
-
-### Change Colors
-
-```typescript
-// Primary color (cyan)
-className = "bg-[#00b4d8]"; // Replace with your brand color
-
-// Button gradient
-className = "bg-gradient-to-br from-blue-600 to-purple-600";
-```
-
-### Change Size
-
-```typescript
-// In ChatWindow.tsx
-className = "w-96 h-[600px]"; // Adjust width and height
-```
-
-### Add Real AI Integration
-
-Replace mock streaming with actual API:
-
-```typescript
-// In useChatState.ts
-const response = await fetch("/api/chat", {
-  method: "POST",
-  body: JSON.stringify({ message: content }),
-});
-
-const data = await response.json();
-// Stream the response...
-```
-
----
-
-## 🧪 Testing
-
-### Testing Recommendations
-
-**Unit Tests**:
-
-- `useChatState` hook logic
-- `validateChatMessage` function
-- `simulateStreamingResponse` function
-- `parseComponentQuery` function
-
-**Component Tests**:
-
-- ChatWindow with error scenarios
-- ChatInput validation states
-- ErrorBoundary error catching
-- ComponentRenderer rendering
-
-**Integration Tests**:
-
-- Full chat flow (send → stream → render)
-- Error recovery flow
-- Keyboard shortcut functionality
-- Quick reply interactions
-
-**Accessibility Tests**:
-
-- Screen reader compatibility
-- Keyboard-only navigation
-- ARIA attribute validation
-- Focus management
-
-### Manual Testing Checklist
-
-- [ ] Empty message handling
-- [ ] All 4 component types render
-- [ ] Streaming completes properly
-- [ ] Component appears after streaming
-- [ ] Quick replies work
-- [ ] Error boundary catches errors
-- [ ] Retry functionality works
-- [ ] Keyboard shortcuts (Escape, Cmd+K)
-- [ ] Mobile responsiveness
-- [ ] Animation smoothness
-- [ ] Accessibility (screen reader, keyboard)
-
----
-
-## 🚀 Future Enhancements
-
-### Planned Features
-
-1. **Real AI Integration**
-
-   - OpenAI API for natural language
-   - Proper intent classification
-   - Context-aware responses
-   - Streaming with Server-Sent Events (SSE)
-
-2. **Advanced Streaming**
-
-   - WebSocket for bidirectional communication
-   - Chunk-based streaming
-   - Real-time typing indicators
-
-3. **Persistence**
-
-   - LocalStorage for chat history
-   - Session management
-   - Export conversation feature
-   - Cloud sync
-
-4. **Analytics**
-
-   - Track popular queries
-   - Component interaction metrics
-   - User engagement data
-   - A/B testing framework
-
-5. **Additional Features**
-   - File attachments
-   - Voice input/output
-   - Multi-language support
-   - Suggested questions
-   - User authentication
-   - Theme customization
-
----
-
 ## 🎯 Architecture Decisions
 
 ### Why This Approach?
@@ -770,26 +600,6 @@ const data = await response.json();
 - **Memory**: Efficient message management with React.memo
 - **Streaming**: Non-blocking character-by-character updates
 - **State Updates**: Optimized with functional setState patterns
-
----
-
-## ✅ Assignment Requirements Met
-
-### Core Requirements
-
-✅ **Embeddable Widget**: `<UiLibraryAssistant />` is self-contained  
-✅ **Chat Interface**: Full message list, input, loading states, scrollable  
-✅ **Streaming**: Character-by-character streaming with variable speed  
-✅ **UI Rendering**: Live, interactive components based on queries  
-✅ **Component Structure**: Clean, modular architecture with custom hooks  
-✅ **Data Modeling**: Type-safe interfaces and state management  
-✅ **Streaming Updates**: Real-time UI updates during streaming
-
-### Evaluation Criteria (10/10)
-
-✅ **Component Structure & State**: Custom hooks, error boundaries, clean separation  
-✅ **Data Modeling**: Consolidated types, validation utilities, type safety  
-✅ **Streaming Updates**: React.memo optimization, error handling, performance
 
 ---
 

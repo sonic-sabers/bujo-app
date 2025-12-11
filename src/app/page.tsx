@@ -58,7 +58,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto animate-fade-in">
             <div className="mb-10 md:mb-12">
               <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 pb-1">
-                Boju Components
+                Bujo UI Components
               </h1>
               <p className="text-base md:text-lg text-gray-600 max-w-3xl leading-relaxed">
                 Explore the whole collection of responsive, accessible

@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BojuUI - Modern React Component Library",
+  title: "Bujo UI - Modern React Component Library",
   description:
     "Explore a comprehensive collection of responsive, accessible UI components built with React, Tailwind CSS, and Framer Motion. Ready to use in your next project.",
   keywords: [
@@ -18,11 +18,11 @@ export const metadata: Metadata = {
     "Tailwind CSS",
     "Framer Motion",
     "Component Library",
-    "BojuUI",
+    "Bujo UI",
   ],
-  authors: [{ name: "BojuUI Team" }],
+  authors: [{ name: "Bujo UI Team" }],
   openGraph: {
-    title: "BojuUI - Modern React Component Library",
+    title: "Bujo UI - Modern React Component Library",
     description: "Responsive, accessible UI components for React",
     type: "website",
   },

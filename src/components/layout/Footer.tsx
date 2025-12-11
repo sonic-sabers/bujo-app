@@ -21,7 +21,7 @@ export function Footer() {
                 </svg>
               </div>
               <span className="font-bold text-lg">
-                Boju<span className="text-amber-600">UI</span>
+                Bujo&nbsp;<span className="text-amber-600">UI</span>
               </span>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
@@ -147,7 +147,7 @@ export function Footer() {
 
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-500">
-            © 2025 BojuUI. All rights reserved.
+            &copy; 2025 Bujo UI. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a
