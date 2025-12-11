@@ -23,8 +23,52 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 
 ---
 
+## 📸 Screenshots
+
+### 🎥 Video Overview
+
+[**▶️ Watch Full UI Demo (Google Drive)**](https://drive.google.com/file/d/1_vl8IrAhuPnJrvP3U-LSTW4IjfGm3uy0/view?usp=drive_link)
+
+> Complete walkthrough of the chatbot in action - from homepage navigation to live component rendering with streaming responses.
+
+### Home Page
+
+![Home Default](./public/Home%20default.png)
+_Default home page with component library showcase_
+
+![Home Active](./public/Home%20Active.png)
+_Active state with sidebar navigation_
+
+### Chat Widget
+
+![Closed Chat](./public/Closed%20Chat.png)
+_Floating chat button in bottom-right corner_
+
+![Chat Default](./public/Chat%20default.png)
+_Chat window with welcome message and quick replies_
+
+![Chat Answer](./public/Chat%20Answer.png)
+_AI streaming response with typing indicator_
+
+![Chat Result 1](./public/chat%20result%201.png)
+_Component examples rendered in chat (buttons)_
+
+![Search Result 1](./public/Search%20Result1.png)
+_Search query with component detection_
+
+![Search Result 2](./public/Search%20result%202.png)
+_Live component rendering after streaming completes_
+
+### Mobile View
+
+![Mobile View](./public/MoobileView.png)
+_Responsive design on mobile devices_
+
+---
+
 ## 📋 Table of Contents
 
+- [Screenshots](#-screenshots)
 - [Features](#-features)
 - [Architecture](#-architecture)
 - [Tech Stack](#-tech-stack)

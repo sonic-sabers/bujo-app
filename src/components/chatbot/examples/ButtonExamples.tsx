@@ -14,7 +14,7 @@ export function ButtonExamples({
   return (
     <div className="relative bg-gray-50 rounded-lg">
       {!hideHeader && (
-        <div className="p-4 pb-2">
+        <div className=" pb-2">
           <h4 className="font-semibold text-gray-900 mb-3">
             Button Variations
           </h4>

@@ -25,6 +25,11 @@
 *.pem
 .windsurfrules
 
+# Large media files (host externally)
+*.mov
+*.mp4
+public/UI Overview.mov
+
 
 # debug
 npm-debug.log*
