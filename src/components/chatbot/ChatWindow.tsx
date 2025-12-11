@@ -92,6 +92,11 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
         className="fixed right-6 z-40 w-96 max-w-[calc(100vw-3rem)] md:w-96 bg-[#00b4d8] rounded-2xl shadow-2xl flex flex-col overflow-hidden p-[2px]"
         style={{
           bottom: `${Math.max(96, keyboardHeight + 16)}px`,
+          minHeight: isExpanded
+            ? keyboardHeight > 0
+              ? "300px"
+              : "min(400px, calc(100vh - 120px))"
+            : "auto",
           maxHeight: isExpanded
             ? keyboardHeight > 0
               ? `calc(100vh - ${keyboardHeight + 32}px)`
@@ -187,7 +192,7 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
           {/* Messages */}
           {isExpanded && (
             <div
-              className="chat-messages flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gray-50"
+              className="chat-messages flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gray-50 min-h-[280px] md:min-h-[320px]"
               role="log"
               aria-live="polite"
               aria-label="Chat messages"
