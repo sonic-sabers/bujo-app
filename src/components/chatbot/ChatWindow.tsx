@@ -54,7 +54,14 @@ export function ChatWindow({
     sendMessage,
     clearChat,
     retryLastMessage,
+    stopStreaming,
   } = useChatState();
+
+  // Handle close - stop streaming before closing
+  const handleClose = useCallback(() => {
+    stopStreaming();
+    onClose();
+  }, [stopStreaming, onClose]);
 
   const [showQuickReplies, setShowQuickReplies] = useState(true);
   const quickReplies = useMemo(
@@ -219,7 +226,7 @@ export function ChatWindow({
     [
       {
         key: "Escape",
-        callback: onClose,
+        callback: handleClose,
         description: "Close chat",
       },
       {
@@ -333,7 +340,7 @@ export function ChatWindow({
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={onClose}
+                onClick={handleClose}
                 className="w-7 h-7 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors"
                 aria-label="Close chat"
               >

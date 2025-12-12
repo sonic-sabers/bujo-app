@@ -215,12 +215,34 @@ export function useChatState(options: UseChatStateOptions = {}) {
     [isStreaming, isTyping, onError]
   );
 
-  const clearChat = useCallback(async () => {
+  // Stop streaming and mark last message as complete
+  const stopStreaming = useCallback(() => {
     // Cancel any ongoing streaming
     if (cancelStreamRef.current) {
       cancelStreamRef.current();
       cancelStreamRef.current = null;
     }
+
+    // Clear typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    // Mark the last streaming message as complete
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.isStreaming ? { ...msg, isStreaming: false } : msg
+      )
+    );
+
+    setIsTyping(false);
+    setIsStreaming(false);
+  }, []);
+
+  const clearChat = useCallback(async () => {
+    // Cancel any ongoing streaming
+    stopStreaming();
 
     const newMessages: Message[] = [
       {
@@ -232,8 +254,6 @@ export function useChatState(options: UseChatStateOptions = {}) {
     ];
 
     setMessages(newMessages);
-    setIsTyping(false);
-    setIsStreaming(false);
     setError(null);
 
     // Save cleared state to storage
@@ -242,7 +262,7 @@ export function useChatState(options: UseChatStateOptions = {}) {
     } catch (error) {
       console.error("Failed to save cleared chat:", error);
     }
-  }, []);
+  }, [stopStreaming]);
 
   const retryLastMessage = useCallback(() => {
     const lastUserMessage = [...messages]
@@ -271,5 +291,6 @@ export function useChatState(options: UseChatStateOptions = {}) {
     sendMessage,
     clearChat,
     retryLastMessage,
+    stopStreaming,
   };
 }
