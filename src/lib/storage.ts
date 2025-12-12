@@ -206,6 +206,196 @@ class ChatStorage {
       }
     }
   }
+
+  async appendMessage(message: Message): Promise<void> {
+    try {
+      await this.ensureDBReady();
+
+      if (this.isIndexedDBAvailable && this.db) {
+        const transaction = this.db.transaction([STORE_NAME], "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+
+        await new Promise<void>((resolve, reject) => {
+          const addRequest = store.put({
+            ...message,
+            timestamp: message.timestamp.toISOString(),
+          });
+          addRequest.onsuccess = () => resolve();
+          addRequest.onerror = () => reject(addRequest.error);
+        });
+
+        await new Promise<void>((resolve, reject) => {
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+        });
+      } else {
+        // Fallback: load, append, save to localStorage
+        const stored = localStorage.getItem(LS_KEY);
+        const messages = stored ? JSON.parse(stored) : [];
+        messages.push({
+          ...message,
+          timestamp: message.timestamp.toISOString(),
+        });
+        localStorage.setItem(LS_KEY, JSON.stringify(messages));
+      }
+    } catch (error) {
+      console.error("Failed to append message:", error);
+    }
+  }
+
+  async updateMessage(message: Message): Promise<void> {
+    try {
+      await this.ensureDBReady();
+
+      if (this.isIndexedDBAvailable && this.db) {
+        const transaction = this.db.transaction([STORE_NAME], "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+
+        await new Promise<void>((resolve, reject) => {
+          const putRequest = store.put({
+            ...message,
+            timestamp: message.timestamp.toISOString(),
+          });
+          putRequest.onsuccess = () => resolve();
+          putRequest.onerror = () => reject(putRequest.error);
+        });
+
+        await new Promise<void>((resolve, reject) => {
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+        });
+      } else {
+        // Fallback: load, update, save to localStorage
+        const stored = localStorage.getItem(LS_KEY);
+        if (stored) {
+          const messages = JSON.parse(stored);
+          const index = messages.findIndex((m: any) => m.id === message.id);
+          if (index !== -1) {
+            messages[index] = {
+              ...message,
+              timestamp: message.timestamp.toISOString(),
+            };
+            localStorage.setItem(LS_KEY, JSON.stringify(messages));
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update message:", error);
+    }
+  }
+
+  async getMessageCount(): Promise<number> {
+    try {
+      await this.ensureDBReady();
+
+      if (this.isIndexedDBAvailable && this.db) {
+        const transaction = this.db.transaction([STORE_NAME], "readonly");
+        const store = transaction.objectStore(STORE_NAME);
+
+        return new Promise((resolve, reject) => {
+          const countRequest = store.count();
+          countRequest.onsuccess = () => resolve(countRequest.result);
+          countRequest.onerror = () => reject(countRequest.error);
+        });
+      } else {
+        const stored = localStorage.getItem(LS_KEY);
+        return stored ? JSON.parse(stored).length : 0;
+      }
+    } catch (error) {
+      console.error("Failed to get message count:", error);
+      return 0;
+    }
+  }
+
+  async loadMessagesPaginated(
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<{ messages: Message[]; hasMore: boolean; total: number }> {
+    try {
+      await this.ensureDBReady();
+
+      if (this.isIndexedDBAvailable && this.db) {
+        const transaction = this.db.transaction([STORE_NAME], "readonly");
+        const store = transaction.objectStore(STORE_NAME);
+        const index = store.index("timestamp");
+
+        const total = await new Promise<number>((resolve, reject) => {
+          const countRequest = store.count();
+          countRequest.onsuccess = () => resolve(countRequest.result);
+          countRequest.onerror = () => reject(countRequest.error);
+        });
+
+        const messages: Message[] = [];
+        let skipped = 0;
+
+        return new Promise((resolve, reject) => {
+          const cursorRequest = index.openCursor();
+
+          cursorRequest.onsuccess = (event) => {
+            const cursor = (event.target as IDBRequest<IDBCursorWithValue>)
+              .result;
+
+            if (!cursor) {
+              resolve({
+                messages,
+                hasMore: offset + messages.length < total,
+                total,
+              });
+              return;
+            }
+
+            if (skipped < offset) {
+              skipped++;
+              cursor.continue();
+              return;
+            }
+
+            if (messages.length < limit) {
+              messages.push({
+                ...cursor.value,
+                timestamp: new Date(cursor.value.timestamp),
+              });
+              cursor.continue();
+            } else {
+              resolve({
+                messages,
+                hasMore: offset + messages.length < total,
+                total,
+              });
+            }
+          };
+
+          cursorRequest.onerror = () => reject(cursorRequest.error);
+        });
+      } else {
+        // Fallback to localStorage
+        const stored = localStorage.getItem(LS_KEY);
+        if (!stored) return { messages: [], hasMore: false, total: 0 };
+
+        const allMessages = JSON.parse(stored)
+          .map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp),
+          }))
+          .sort(
+            (a: Message, b: Message) =>
+              a.timestamp.getTime() - b.timestamp.getTime()
+          );
+
+        const total = allMessages.length;
+        const messages = allMessages.slice(offset, offset + limit);
+
+        return {
+          messages,
+          hasMore: offset + messages.length < total,
+          total,
+        };
+      }
+    } catch (error) {
+      console.error("Failed to load paginated messages:", error);
+      return { messages: [], hasMore: false, total: 0 };
+    }
+  }
 }
 
 let chatStorageInstance: ChatStorage | null = null;

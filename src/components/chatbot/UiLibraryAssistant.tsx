@@ -4,8 +4,20 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatWindow } from "./ChatWindow";
 
-export function UiLibraryAssistant() {
+export interface UiLibraryAssistantProps {
+  themeColor?: string;
+  position?: "bottom-right" | "bottom-left";
+  zIndex?: number;
+}
+
+export function UiLibraryAssistant({
+  themeColor = "#00b4d8",
+  position = "bottom-right",
+  zIndex = 50,
+}: UiLibraryAssistantProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
+  const positionClasses =
+    position === "bottom-left" ? "left-4 md:left-6" : "right-4 md:right-6";
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -14,12 +26,25 @@ export function UiLibraryAssistant() {
   return (
     <>
       <AnimatePresence>
-        {isOpen && <ChatWindow onClose={() => setIsOpen(false)} />}
+        {isOpen && (
+          <ChatWindow
+            onClose={() => setIsOpen(false)}
+            themeColor={themeColor}
+            position={position}
+          />
+        )}
       </AnimatePresence>
 
       <motion.button
         onClick={toggleChat}
-        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 md:w-16 md:h-16 bg-[#00b4d8] rounded-full shadow-2xl flex items-center justify-center text-white hover:shadow-[#00b4d8]/50 transition-shadow"
+        className={`fixed bottom-4 md:bottom-6 ${positionClasses} w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center text-white transition-shadow`}
+        style={{
+          backgroundColor: themeColor,
+          zIndex,
+          boxShadow: `0 10px 40px ${themeColor}40`,
+        }}
+        aria-label={isOpen ? "Close chat" : "Open chat"}
+        aria-expanded={isOpen}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         initial={{ scale: 0, opacity: 0 }}

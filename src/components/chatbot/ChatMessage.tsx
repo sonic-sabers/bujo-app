@@ -1,28 +1,50 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { type Message } from "@/types/chat";
 import { ComponentRenderer } from "./ComponentRenderer";
 
+const MAX_CONTENT_LENGTH = 500;
+const TRUNCATION_THRESHOLD = 600;
+
 interface ChatMessageProps {
   message: Message;
   index: number;
+  totalMessages?: number;
   isLastStreamingMessage?: boolean;
 }
+
+const MAX_ANIMATED_MESSAGES = 5;
 
 export const ChatMessage = memo(function ChatMessage({
   message,
   index,
+  totalMessages = 0,
   isLastStreamingMessage = false,
 }: ChatMessageProps) {
   const isUser = message.role === "user";
+  const shouldAnimate = totalMessages - index <= MAX_ANIMATED_MESSAGES;
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const { displayContent, isTruncated } = useMemo(() => {
+    const content = message.content;
+    if (message.isStreaming || content.length <= TRUNCATION_THRESHOLD) {
+      return { displayContent: content, isTruncated: false };
+    }
+    return {
+      displayContent: isExpanded
+        ? content
+        : content.slice(0, MAX_CONTENT_LENGTH),
+      isTruncated: !isExpanded,
+    };
+  }, [message.content, message.isStreaming, isExpanded]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      initial={shouldAnimate ? { opacity: 0, y: 10, scale: 0.95 } : false}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: index * 0.05, duration: 0.3 }}
+      transition={shouldAnimate ? { duration: 0.3 } : { duration: 0 }}
       className={`flex ${isUser ? "justify-end" : "justify-start"}`}
     >
       <div
@@ -77,7 +99,8 @@ export const ChatMessage = memo(function ChatMessage({
             }`}
           >
             <p className="text-sm leading-relaxed whitespace-pre-wrap">
-              {message.content}
+              {displayContent}
+              {isTruncated && <span className="text-gray-400">...</span>}
               {message.isStreaming && !isUser && isLastStreamingMessage && (
                 <motion.span
                   className="inline-block w-0.5 h-4 bg-[#00b4d8] ml-0.5"
@@ -90,6 +113,22 @@ export const ChatMessage = memo(function ChatMessage({
                 />
               )}
             </p>
+            {isTruncated && (
+              <button
+                onClick={() => setIsExpanded(true)}
+                className="text-xs text-blue-500 hover:text-blue-700 mt-1 underline"
+              >
+                Show more
+              </button>
+            )}
+            {isExpanded && message.content.length > TRUNCATION_THRESHOLD && (
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="text-xs text-blue-500 hover:text-blue-700 mt-1 underline"
+              >
+                Show less
+              </button>
+            )}
           </div>
           {(message.componentType || message.componentData) &&
             !isUser &&

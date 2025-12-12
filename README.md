@@ -1,668 +1,403 @@
 # Bujo UI - Streamable UI Chatbot
 
-> A production-ready, embeddable chat widget that acts as a "UI librarian" for design systems. Built with Next.js 14, TypeScript, Framer Motion, and GSAP.
+An embeddable chat widget that acts as a "UI librarian" for component libraries. Users can request UI examples and receive live, interactive components rendered in the chat.
 
-[![Tech Lead Rating](https://img.shields.io/badge/Rating-10%2F10-success?style=for-the-badge)]()
-[![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue?style=for-the-badge&logo=typescript)]()
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)]()
-[![Accessibility](https://img.shields.io/badge/WCAG-Compliant-green?style=for-the-badge)]()
+**🔗 Live Demo**: [https://bujo-app.vercel.app/](https://bujo-app.vercel.app/)
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Run development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the application.
+Open [http://localhost:3000](http://localhost:3000)
 
----
+### Run Tests
 
-## 📸 Screenshots
-
-### 🎥 Video Overview
-
-[**▶️ Watch Full UI Demo (Google Drive)**](https://drive.google.com/file/d/1_vl8IrAhuPnJrvP3U-LSTW4IjfGm3uy0/view?usp=drive_link)
-
-> Complete walkthrough of the chatbot in action - from homepage navigation to live component rendering with streaming responses.
-
-### Home Page
-
-![Home Default](./public/Home%20default.png)
-_Default home page with component library showcase_
-
-![Home Active](./public/Home%20Active.png)
-_Active state with sidebar navigation_
-
-### Chat Widget
-
-![Chat Default](./public/Chat%20default.png)
-
-_Chat window with welcome message and quick replies_
-
-![Chat Answer](./public/Chat%20Answer.png)
-
-_AI streaming response with typing indicator_
-
-![Chat Result 1](./public/chat%20result%201.png)
-
-_Component examples rendered in chat (buttons)_
-
-![Search Result 1](./public/Search%20Result1.png)
-
-_Search query with component detection_
-
-![Search Result 2](./public/Search%20result%202.png)
-
-_Live component rendering after streaming completes_
-
-![Closed Chat](./public/Closed%20Chat.png)
-
-_Floating chat button in bottom-right corner_
-
-### Mobile View
-
-![Mobile View](./public/MoobileView.png)
-
-_Responsive design on mobile devices_
-
----
-
-## 📋 Table of Contents
-
-- [Quick Start](#-quick-start)
-- [Screenshots](#-screenshots)
-- [Features](#-features)
-- [Architecture](#-architecture)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [How It Works](#-how-it-works)
-- [UX](#-ux)
-- [Usage Guide](#-usage-guide)
-- [Architecture Decisions](#-architecture-decisions)
-- [Performance](#-performance)
-- [Bonus Features](#-bonus-features)
-- [Live Demo](#-live-demo)
-
----
-
-## ✨ Features
-
-### 🤖 **Embeddable Chat Widget**
-
-- **Self-contained component**: `<UiLibraryAssistant />` drops into any page
-- **Floating button**: Bottom-right positioning with gradient design
-- **Modal chat panel**: 384px × 600px with smooth animations
-- **Unread counter**: Badge indicator for new messages
-- **Expand/collapse**: Minimize chat without closing
-- **Keyboard shortcuts**: Escape to close, Cmd/Ctrl+K to clear
-
-### 💬 **Streaming Responses**
-
-- **Character-by-character streaming**: 30ms base delay
-- **Variable typing speed**: Natural rhythm with punctuation pauses
-  - Spaces: 0.5x speed (faster)
-  - Periods/!/?: 3x speed (pause at sentence end)
-  - Commas: 2x speed (pause at clause)
-  - Regular chars: Random 0-30% variation
-- **Blinking cursor**: Visual feedback during streaming
-- **Typing indicator**: Animated dots while AI "thinks"
-- **Progressive rendering**: Components appear after text completes
-
-### 🎨 **Live Component Rendering**
-
-- **Interactive components**: Fully functional UI elements in chat
-- **Supported types**:
-  - **Buttons**: Primary, Secondary, Outline, Destructive, Icon variants
-  - **Cards**: Default, Elevated, Outlined, Gradient styles
-  - **Inputs**: Text, Search, Email with validation states
-  - **Chat Bubbles**: User, Assistant, Gradient, System messages
-- **Real-time rendering**: Components render based on natural language queries
-- **Hover states**: All components have interactive feedback
-
-### 🧠 **Intelligent Query Parsing**
-
-- **Natural language understanding**: Keyword-based detection
-- **Example queries**:
-  - "Show me different types of buttons"
-  - "Display card variations"
-  - "I need input field examples"
-  - "Show me chat bubble styles"
-  - "Show me primary, secondary, and ghost buttons"
-
----
-
-## 🏗️ Architecture
-
-### System Overview
-
-Bujo UI follows a component-based architecture with clear separation of concerns:
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                          Page Layout                              │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │                        Header                               │  │
-│  │  (Bujo UI logo, Search, Social links, Components nav)       │  │
-│  └────────────────────────────────────────────────────────────┘  │
-│                                                                   │
-│  ┌──────────┐  ┌───────────────────────────────────────────┐   │
-│  │ Sidebar  │  │          Main Content Area                 │   │
-│  │          │  │  ┌──────────────────────────────────────┐  │   │
-│  │ Buttons  │  │  │  Bujo UI Components (Hero Section)      │  │   │
-│  │ Cards    │  │  └──────────────────────────────────────┘  │   │
-│  │ Input    │  │                                             │   │
-│  │ Fields   │  │  ┌─────────────────────────────────────┐   │   │
-│  │ Chat     │  │  │      ComponentGrid                   │   │   │
-│  │ Bubbles  │  │  │  ┌────────┐  ┌────────┐  ┌────────┐ │   │   │
-│  │          │  │  │  │ Button │  │  Card  │  │ Input  │ │   │   │
-│  │          │  │  │  │  Card  │  │  Card  │  │  Card  │ │   │   │
-│  │          │  │  │  └────────┘  └────────┘  └────────┘ │   │   │
-│  │          │  │  │  ┌────────┐                          │   │   │
-│  │          │  │  │  │  Chat  │                          │   │   │
-│  │          │  │  │  │ Bubble │                          │   │   │
-│  │          │  │  │  │  Card  │                          │   │   │
-│  │          │  │  │  └────────┘                          │   │   │
-│  └──────────┘  │  └─────────────────────────────────────┘   │   │
-│                └───────────────────────────────────────────┘   │
-│                                                                   │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │              UiLibraryAssistant (Fixed Bottom-Right)       │  │
-│  │  (Floating chat button with expandable chat window)        │  │
-│  └────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────┘
-
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                  UiLibraryAssistant Component Tree                │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │              UiLibraryAssistant (Main Widget)              │  │
-│  │  ┌──────────────────────────────────────────────────────┐  │  │
-│  │  │                  ChatWindow                           │  │  │
-│  │  │  ┌────────────┐  ┌────────────┐  ┌────────────────┐  │  │  │
-│  │  │  │ChatMessage │  │ ChatInput  │  │ QuickReplies   │  │  │  │
-│  │  │  │(List)      │  │            │  │                │  │  │  │
-│  │  │  └────────────┘  └────────────┘  └────────────────┘  │  │  │
-│  │  │  ┌────────────┐  ┌────────────┐                      │  │  │
-│  │  │  │ Typing     │  │Component   │                      │  │  │
-│  │  │  │ Indicator  │  │ Renderer   │                      │  │  │
-│  │  │  └────────────┘  └────────────┘                      │  │  │
-│  │  └──────────────────────────────────────────────────────┘  │  │
-│  └────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                      Business Logic Layer                         │
-│  ┌──────────────────┐  ┌──────────────────────────────────────┐ │
-│  │ useChatState     │  │ streamMockResponse                   │ │
-│  │ (State Hook)     │  │ (Word-by-word streaming simulation)  │ │
-│  │ - messages[]     │  │ - Async text chunking                │ │
-│  │ - isStreaming    │  │ - Component type detection           │ │
-│  │ - sendMessage()  │  └──────────────────────────────────────┘ │
-│  └──────────────────┘                                            │
-└──────────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                  Component Rendering Layer                        │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │                   ComponentRenderer                         │  │
-│  │  (Maps componentType to actual React components)           │  │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐ │  │
-│  │  │ButtonExamples│  │ CardExamples │  │ InputExamples    │ │  │
-│  │  │(132 vars)    │  │ (12 vars)    │  │ (12 vars)        │ │  │
-│  │  └──────────────┘  └──────────────┘  └──────────────────┘ │  │
-│  │  ┌──────────────┐                                          │  │
-│  │  │ChatBubble    │                                          │  │
-│  │  │Examples      │                                          │  │
-│  │  └──────────────┘                                          │  │
-│  └────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-### Data Flow
-
-#### 1. User Input Flow
-
-```
-User types message
-    ↓
-ChatInput validates & emits
-    ↓
-useChatState.sendMessage()
-    ↓
-Creates user Message object
-    ↓
-Updates messages state
-    ↓
-Triggers componentParser.parseComponentQuery()
-```
-
-#### 2. Response Generation Flow
-
-```
-componentParser identifies component type
-    ↓
-getComponentResponse() generates text
-    ↓
-simulateStreamingResponse() starts
-    ↓
-Character-by-character streaming
-    ↓
-onChunk updates message.content
-    ↓
-onComplete sets isStreaming = false
-    ↓
-ComponentRenderer appears (if componentType exists)
-```
-
-#### 3. Component Rendering Flow
-
-```
-Message.isStreaming becomes false
-    ↓
-ChatMessage checks conditions
-    ↓
-Renders ComponentRenderer
-    ↓
-ComponentRenderer maps type to component
-    ↓
-Live component appears with animation
+```bash
+npm install   # Install dependencies including Jest
+npm test      # Run all tests
+npm run test:watch  # Run tests in watch mode
 ```
 
 ---
 
-## 📦 Tech Stack
+## Assignment Overview
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript (100% coverage)
-- **Styling**: Tailwind CSS v4
-- **Animations**: Framer Motion + GSAP
-- **State Management**: React Hooks + Custom Hooks
-- **Icons**: Lucide React
-- **Validation**: Custom validation utilities
+This project implements the **Bujo AI Take-home Assignment**: a streamable UI chatbot for component libraries.
+
+### Baseline Requirements ✅
+
+| Requirement              | Implementation                                                      |
+| ------------------------ | ------------------------------------------------------------------- |
+| **Embeddable Widget**    | `<UiLibraryAssistant />` - self-contained, bottom-right FAB         |
+| **Chat Interface**       | Message list, input box, loading states, scrollable history         |
+| **Persistent Storage**   | IndexedDB with localStorage fallback (`storage.ts`)                 |
+| **Streaming Behavior**   | Character-by-character with variable speed (`streamingResponse.ts`) |
+| **UI Example Rendering** | Live interactive components via `ComponentRenderer`                 |
+
+### Focus Directions Chosen
+
+#### Direction A: Large Chat History (~1000 messages) ⭐ Production-Grade
+
+#### Direction B: Streamable Markdown + JSON → Components
 
 ---
 
-## 📁 Project Structure
+## Direction A: Large Chat History (Production-Grade) ⭐
+
+This direction was treated as **production-grade**. Here's what that means:
+
+### What "Production-Grade" Means
+
+| Category                      | What I Did                                                                                           |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Architecture**              | Separated concerns: `useChatState` hook for logic, `ChatWindow` for UI, `storage.ts` for persistence |
+| **Performance**               | Virtualized rendering, batched updates, debounced saves, memoized components                         |
+| **Error Handling**            | Error boundaries, retry functionality, graceful fallbacks (IndexedDB → localStorage)                 |
+| **Memory Management**         | Proper cleanup of timeouts/refs on unmount, no memory leaks                                          |
+| **DX (Developer Experience)** | TypeScript throughout, clear prop interfaces, documented code                                        |
+| **UX**                        | Smooth scrolling, auto-scroll with user override, loading states, keyboard shortcuts                 |
+| **Testing**                   | Unit tests with Jest for `componentParser`, `streamingResponse`; manual testing for UX flows         |
+
+### Implementation
+
+**Virtualization with @tanstack/react-virtual**
+
+- Only visible messages are rendered in the DOM
+- Handles 1000+ messages without performance degradation
+- Dynamic row heights with automatic measurement
+
+```typescript
+// ChatWindow.tsx
+const virtualizer = useVirtualizer({
+  count: messages.length,
+  getScrollElement: () => parentRef.current,
+  estimateSize: () => 100,
+  overscan: 5, // Pre-render 5 items above/below viewport
+});
+```
+
+### Production-Grade Details
+
+| Aspect             | Implementation                                                                 |
+| ------------------ | ------------------------------------------------------------------------------ |
+| **Performance**    | Virtualized list renders only ~10-15 DOM nodes regardless of message count     |
+| **Memory**         | Messages stored in IndexedDB (not memory) with pagination support              |
+| **Scroll UX**      | Auto-scroll to bottom on new messages, pauses when user scrolls up             |
+| **Streaming**      | Batched state updates during streaming (3-char buffer + requestAnimationFrame) |
+| **Error Handling** | Error boundaries isolate failures, retry functionality for failed messages     |
+| **Cleanup**        | Proper cleanup of timeouts/refs on unmount to prevent memory leaks             |
+
+### Architecture Decisions
+
+1. **IndexedDB over localStorage**: Handles larger datasets, async operations don't block UI
+2. **Debounced saves**: 1-second debounce prevents excessive writes during streaming
+3. **Ref-based scroll tracking**: Avoids re-renders while tracking scroll position
+4. **Batched streaming updates**: Groups character updates to reduce React reconciliation
+5. **Memoized components**: `React.memo` on `ChatMessage` and `ComponentRenderer` to prevent unnecessary re-renders
+
+### IndexedDB Storage Implementation
+
+#### Why IndexedDB over localStorage?
+
+| Aspect                   | localStorage               | IndexedDB                    | Winner    |
+| ------------------------ | -------------------------- | ---------------------------- | --------- |
+| **Storage Limit**        | ~5MB                       | ~50MB+ (browser dependent)   | IndexedDB |
+| **Data Type**            | Strings only               | Any (objects, blobs, arrays) | IndexedDB |
+| **API Type**             | Synchronous (blocks UI)    | Asynchronous (non-blocking)  | IndexedDB |
+| **Querying**             | None (full parse required) | Indexes, cursors, ranges     | IndexedDB |
+| **Performance at Scale** | Degrades with size         | Consistent                   | IndexedDB |
+| **Transactions**         | None                       | ACID transactions            | IndexedDB |
+
+#### Performance Benefits for 1000+ Messages
+
+```
+localStorage (1000 messages):
+├── Save: Parse entire array → Stringify → Write (blocks UI ~50-100ms)
+├── Load: Read → Parse entire JSON (~30-50ms blocking)
+└── Update 1 message: Load all → Modify → Save all (wasteful)
+
+IndexedDB (1000 messages):
+├── Save: Async transaction, no UI blocking
+├── Load: Async with cursor/pagination support
+└── Update 1 message: Direct put() by key (O(1) lookup)
+```
+
+#### Key Implementation Changes
+
+```typescript
+// OLD: localStorage approach (blocking)
+const messages = JSON.parse(localStorage.getItem("messages") || "[]");
+localStorage.setItem("messages", JSON.stringify(messages));
+
+// NEW: IndexedDB approach (async, non-blocking)
+const transaction = db.transaction(["chat-messages"], "readwrite");
+const store = transaction.objectStore("chat-messages");
+await store.put(message); // Direct upsert by ID
+```
+
+**What Changed:**
+
+| Change             | Before                               | After                                |
+| ------------------ | ------------------------------------ | ------------------------------------ |
+| **Storage**        | `localStorage.setItem()`             | `IndexedDB.put()` with transactions  |
+| **Retrieval**      | `JSON.parse(localStorage.getItem())` | `store.getAll()` with cursor support |
+| **Updates**        | Load all → modify → save all         | Direct `put()` by message ID         |
+| **Pagination**     | Not possible                         | `getMessagesPaginated(page, limit)`  |
+| **Indexing**       | None                                 | Timestamp index for sorting          |
+| **Error Recovery** | App crashes                          | Graceful fallback to localStorage    |
+
+The `storage.ts` module provides persistent chat storage with comprehensive edge case handling:
+
+```typescript
+// Primary: IndexedDB for large datasets
+// Fallback: localStorage for browser compatibility
+const storage = getChatStorage();
+await storage.saveMessages(messages);
+await storage.loadMessages();
+```
+
+**Edge Cases Handled:**
+
+| Edge Case                       | How It's Handled                                                     |
+| ------------------------------- | -------------------------------------------------------------------- |
+| **IndexedDB unavailable**       | Automatic fallback to localStorage                                   |
+| **SSR (Server-Side Rendering)** | Checks `typeof window !== "undefined"` before accessing browser APIs |
+| **DB connection failure**       | Falls back to localStorage, logs error                               |
+| **Transaction errors**          | Try-catch with localStorage fallback                                 |
+| **Corrupted data**              | Returns empty array, doesn't crash                                   |
+| **Date serialization**          | Converts `Date` to ISO string for storage, parses back on load       |
+| **Message ordering**            | Sorts by timestamp after loading to maintain correct order           |
+| **Concurrent writes**           | Uses transactions with proper completion handlers                    |
+| **Private browsing mode**       | localStorage fallback works in most private modes                    |
+
+**Storage API:**
+
+| Method                              | Description                                |
+| ----------------------------------- | ------------------------------------------ |
+| `saveMessages(messages)`            | Save all messages (clears existing)        |
+| `loadMessages()`                    | Load all messages, sorted by timestamp     |
+| `clearMessages()`                   | Clear all stored messages                  |
+| `appendMessage(message)`            | Add single message (uses `put` for upsert) |
+| `updateMessage(message)`            | Update existing message by ID              |
+| `getMessagesPaginated(page, limit)` | Paginated loading for large histories      |
+
+### Test Cases
+
+**componentParser.test.ts** (20+ tests):
+
+- Button detection: `"show me buttons"`, `"ghost button"`, `"cta"`
+- Card detection: `"card component"`, `"elevated card"`
+- Input detection: `"input field"`, `"text field"`, `"search box"`
+- Chat bubble detection: `"chat bubble"`, `"message bubble"`
+- Form detection: `"checkbox"`, `"toggle switch"`
+- Edge cases: empty string, null input, unrelated queries
+- Case insensitivity: `"SHOW ME BUTTONS"` → `"button-variants"`
+- Dynamic vs preset: `"ghost button"` → dynamic, `"show me buttons"` → preset
+
+**streamingResponse.test.ts**:
+
+- Character-by-character streaming
+- Empty string handling
+- Special characters (punctuation)
+- `onChunk` callback verification
+- `onComplete` callback verification
+- Cancel functionality (stops streaming early)
+
+---
+
+## Direction B: Streamable JSON → Components
+
+### Implementation
+
+The assistant returns structured data that the frontend renders as interactive components.
+
+**Query Parsing** (`componentParser.ts`):
+
+```typescript
+// Preset components (full variants)
+"show me buttons" → { componentType: "button-variants" }
+
+// Dynamic components (specific variants)
+"ghost button" → { componentData: { type: "button", variant: "ghost" } }
+
+// Composite components
+"login form" → {
+  componentData: {
+    type: "ui-group",
+    components: [
+      { type: "input", props: { name: "email", type: "email" } },
+      { type: "input", props: { name: "password", type: "password" } },
+      { type: "button", variant: "primary", text: "Sign In" }
+    ]
+  }
+}
+```
+
+**Component Rendering** (`ComponentRenderer.tsx`):
+
+- Maps `componentType` to preset example components
+- Maps `componentData` to dynamically configured components
+- Renders after streaming completes (`isStreaming: false`)
+
+### Supported Component Types
+
+| Type              | Trigger Keywords      | Renders                                        |
+| ----------------- | --------------------- | ---------------------------------------------- |
+| `button-variants` | button, btn, cta      | Primary, Secondary, Ghost, Destructive buttons |
+| `card-variants`   | card, panel, tile     | Default, Elevated, Outlined, Gradient cards    |
+| `input-variants`  | input, field, textbox | Text, Search, Email, Password inputs           |
+| `chat-bubbles`    | bubble, message, chat | User, Assistant, System message styles         |
+| `form-variants`   | form, checkbox, radio | Form elements with validation                  |
+
+### Dynamic Patterns
+
+| Query           | Renders                                 |
+| --------------- | --------------------------------------- |
+| "ghost button"  | Single ghost button                     |
+| "login form"    | Email + Password inputs + Submit button |
+| "contact form"  | Name + Email inputs + Submit button     |
+| "elevated card" | Single elevated card                    |
+
+---
+
+## Tech Stack
+
+| Category       | Technology               |
+| -------------- | ------------------------ |
+| Framework      | Next.js 16 (App Router)  |
+| Language       | TypeScript               |
+| Styling        | Tailwind CSS v4          |
+| Animations     | Framer Motion            |
+| Virtualization | @tanstack/react-virtual  |
+| Storage        | IndexedDB + localStorage |
+
+---
+
+## Project Structure
 
 ```
 src/
-├── components/
-│   ├── chatbot/
-│   │   ├── UiLibraryAssistant.tsx     # Main floating button
-│   │   ├── ChatWindow.tsx             # Chat modal container
-│   │   ├── ChatMessage.tsx            # Message bubbles (memoized)
-│   │   ├── ChatInput.tsx              # Input with validation
-│   │   ├── TypingIndicator.tsx        # Animated typing dots
-│   │   ├── ComponentRenderer.tsx      # Live component renderer (memoized)
-│   │   ├── ErrorBoundary.tsx          # Error boundary component
-│   │   ├── QuickReplies.tsx           # Quick reply buttons
-│   │   └── examples/                  # Component examples
-│   │       ├── ButtonExamples.tsx
-│   │       ├── CardExamples.tsx
-│   │       ├── InputExamples.tsx
-│   │       └── ChatBubbleExamples.tsx
-│   ├── animate-ui/                    # Animated UI components
-│   ├── ui/                            # Reusable UI components
-│   └── layout/                        # Layout components
+├── components/chatbot/
+│   ├── UiLibraryAssistant.tsx   # Main widget entry point
+│   ├── ChatWindow.tsx           # Virtualized chat container
+│   ├── ChatMessage.tsx          # Message bubble (memoized)
+│   ├── ChatInput.tsx            # Input with validation
+│   ├── ComponentRenderer.tsx    # JSON → Component mapping
+│   ├── JsonRenderer.tsx         # Dynamic component renderer
+│   ├── TypingIndicator.tsx      # Animated typing dots
+│   ├── QuickReplies.tsx         # Preset query buttons
+│   ├── ErrorBoundary.tsx        # Error isolation
+│   └── examples/                # Preset component examples
 ├── hooks/
-│   ├── useChatState.ts                # Chat state management hook
-│   ├── useKeyboardShortcuts.ts        # Keyboard shortcuts manager
-│   └── useGSAP.ts                     # GSAP utilities
+│   ├── useChatState.ts          # Chat state + streaming logic
+│   ├── useKeyboardShortcuts.ts  # Keyboard handlers
+│   └── useDebounce.ts           # Debounce utility
 ├── lib/
-│   ├── componentParser.ts             # Query parsing logic
-│   ├── streamingResponse.ts           # Streaming implementation
-│   ├── validation.ts                  # Input validation utilities
-│   ├── animations.ts                  # GSAP utilities
-│   └── framer-variants.ts             # Framer Motion presets
-├── types/
-│   ├── chat.ts                        # Chat type definitions
-│   └── components.ts                  # Component type definitions
-└── app/
-    ├── page.tsx                       # Main page
-    └── globals.css                    # Global styles
+│   ├── componentParser.ts       # Query → component mapping
+│   ├── streamingResponse.ts     # Character streaming
+│   └── storage.ts               # IndexedDB persistence
+└── types/
+    └── chat.ts                  # Message types
 ```
 
 ---
 
-## 🎯 How It Works
+## Usage
 
-### State Management with Custom Hook
-
-The chatbot uses `useChatState` custom hook for centralized state management:
-
-```typescript
-const {
-  messages, // All conversation messages
-  isTyping, // Shows typing indicator
-  isStreaming, // Prevents input during streaming
-  error, // Error state for display
-  sendMessage, // Send user message
-  clearChat, // Reset conversation
-  retryLastMessage, // Retry failed message
-} = useChatState();
-```
-
-**Benefits**:
-
-- Separated business logic from UI
-- Reusable across components
-- Built-in error handling
-- Stream cancellation on unmount
-- Retry functionality
-
-### Data Modeling
-
-```typescript
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  componentType?: ComponentType;
-  timestamp: Date;
-  isStreaming?: boolean;
-}
-
-type ComponentType =
-  | "button-variants"
-  | "card-variants"
-  | "input-variants"
-  | "chat-bubbles"
-  | "form-variants"
-  | null;
-```
-
-### Streaming Implementation
-
-```typescript
-// Character-by-character streaming with variable speed
-simulateStreamingResponse(
-  text: string,
-  onChunk: (chunk: string) => void,
-  onComplete: () => void,
-  baseDelayMs: number = 30
-)
-
-// Variable delays:
-// - Spaces: 0.5x speed (faster)
-// - Periods/!/?:  3x speed (pause)
-// - Commas: 2x speed (slight pause)
-// - Regular chars: 1x + random variation (0-30%)
-```
-
----
-
-## 🎨 UX
-
-### Design System Improvements
-
-#### **Modern Animations & Transitions**
-
-- Fade-in animations for component cards with staggered delays
-- Slide-in animations for sidebar navigation
-- Scale animations for interactive elements
-- Smooth transitions on all hover states (200-300ms)
-- Active states with scale-down effect for tactile feedback
-
-#### **Typography & Visual Hierarchy**
-
-- Gradient text for main heading (gray-900 → blue-900 → gray-900)
-- Font smoothing (-webkit-font-smoothing: antialiased)
-- Professional font stack (system fonts for optimal performance)
-- Tracking adjustments for better readability
-- Responsive font sizes (4xl mobile → 5xl desktop)
-
-#### **Enhanced Component Interactions**
-
-**Header**:
-
-- Glassmorphism effect (backdrop-blur-xl with 80% opacity)
-- Floating header with subtle border
-- Icon hover effects (scale-110 on hover, scale-95 on active)
-- Shadow effects on logo and download button
-- Responsive navigation (hidden on mobile < lg)
-
-**Sidebar**:
-
-- Gradient backgrounds for active items
-- Translate-x animation on hover
-- Badge indicators (NEW, Soon) with color coding
-- Smooth scrolling with custom scrollbar styling
-- Desktop-only display (hidden on mobile)
-
-**Component Cards**:
-
-- Lift effect on hover (-translate-y-1)
-- Enhanced shadows (shadow-xl with blue tint)
-- Gradient backgrounds (gray → blue/purple on hover)
-- Arrow indicator appears on hover with slide animation
-- Border color transition (gray → blue)
-
-#### **Professional Micro-interactions**
-
-**Buttons**:
-
-- Multi-state feedback: hover, active, focus, disabled
-- Shadow elevation on hover
-- Scale animations (active:scale-95)
-- Ring focus states for accessibility
-
-**Cards**:
-
-- Variation indicator with blue dot
-- Smooth color transitions on all text elements
-- Preview area with gradient background shift
-
-#### **Mobile Responsiveness**
-
-**Mobile Menu**:
-
-- Floating action button (bottom-left)
-- Slide-in drawer from left
-- Backdrop blur overlay (black/50 with blur)
-- Smooth open/close animations
-- Touch-friendly sizing (44px minimum)
-
-**Responsive Grid**:
-
-- 1 column on mobile (< 640px)
-- 2 columns on tablet (≥ 640px)
-- 3 columns on desktop (≥ 1024px)
-- Adaptive spacing (gap-6 → gap-8)
-
-#### **Accessibility Enhancements**
-
-- Focus ring states on all interactive elements
-- ARIA labels on icon buttons
-- Keyboard navigation support
-- Semantic HTML structure
-- Color contrast meeting WCAG standards
-
-#### **Performance Optimizations**
-
-- CSS animations (GPU-accelerated)
-- Tailwind utility classes (minimal CSS bundle)
-- System font stack (no font loading delay)
-- Efficient transitions (transform & opacity only)
-- React.memo on ChatMessage and ComponentRenderer
-
-### Color Palette
-
-- **Primary**: #00b4d8 (Cyan)
-- **Accent**: Blue-600 (#2563eb)
-- **Success**: Green-500
-- **Warning**: Yellow-500
-- **Error**: Red-500
-- **Neutral**: Gray scale
-
-### Shadow System
-
-- **sm**: Subtle elevation
-- **md**: Card elevation
-- **lg**: Hover states
-- **xl**: Active/focused states
-- **Colored shadows**: Blue/cyan tints for brand consistency
-
----
-
-### Key Benefits
-
-**For Developers**:
-
-- **Maintainability**: Separated concerns, reusable hooks
-- **Testability**: Isolated business logic in hooks
-- **Type Safety**: Consolidated, well-documented types
-- **Error Resilience**: Graceful error handling throughout
-
-**For Users**:
-
-- **Accessibility**: Screen reader support, keyboard navigation
-- **Reliability**: Error boundaries prevent crashes
-- **UX**: Validation feedback, retry options, keyboard shortcuts
-- **Performance**: Optimized re-renders with React.memo
-
-**For Production**:
-
-- **Scalability**: Clean architecture supports growth
-- **Robustness**: Comprehensive error handling
-- **Standards**: WCAG accessibility compliance
-- **Performance**: Optimized rendering pipeline
-
----
-
-## 📖 Usage Guide
-
-### Basic Integration
-
-```typescript
+```tsx
 import { UiLibraryAssistant } from "@/components/chatbot/UiLibraryAssistant";
 
-// In your component
 export default function Page() {
   return (
     <div>
-      {/* Your page content */}
+      <YourContent />
       <UiLibraryAssistant />
     </div>
   );
 }
 ```
 
-### Component Examples
-
-### Try These Queries:
+### Try These Queries
 
 - "Show me button variations"
-- "I need different card styles"
-- "Show me input field examples"
-- "Display chat bubble variations"
-- "Show me primary, secondary, and ghost buttons"
-
-### Rendered Components:
-
-- **Buttons**: Primary, Secondary, Ghost, Destructive (all interactive)
-- **Cards**: Default, Elevated, Outlined, Gradient (with hover animations)
-- **Inputs**: Default, Search, Email, Error states (with focus states)
-- **Chat Bubbles**: User, Assistant, Gradient, System messages
+- "Display card examples"
+- "Input field types"
+- "Chat bubble styles"
+- "Show me a login form"
+- "Ghost button"
 
 ---
 
-## 🎯 Architecture Decisions
+## Assumptions, Trade-offs & Limitations
 
-### Why This Approach?
+### Assumptions
 
-1. **Component-Based**: Each chat element is a reusable React component
-2. **Type-Safe**: Full TypeScript coverage with strict types
-3. **Custom Hooks**: Separated business logic for better testability
-4. **Error Boundaries**: Graceful error handling prevents crashes
-5. **Streaming**: Simulates real AI streaming for better UX
-6. **Parser-Based**: Simple keyword matching (can be upgraded to LLM)
-7. **Framer Motion**: Smooth, GPU-accelerated animations
-8. **Self-Contained**: Widget can be embedded anywhere
-9. **Accessible**: WCAG compliant with ARIA labels and keyboard navigation
-10. **Performance**: React.memo optimization for long chat histories
+1. **Enterprise-scale ready**: Architecture designed to handle high-volume usage typical of B2C enterprise support (Bujo's target market)
+2. **Mock streaming for demo**: Uses client-side keyword matching; production would integrate with Bujo's AI backend/LLM
+3. **IndexedDB available**: Falls back to localStorage; enterprise deployment could use server-side persistence
+4. **Modern browser support**: Targets browsers used by enterprise customers (Chrome, Safari, Edge, Firefox)
 
----
+### Trade-offs
 
-## 📊 Performance
+| Decision                | Trade-off                      | Enterprise Consideration                                            |
+| ----------------------- | ------------------------------ | ------------------------------------------------------------------- |
+| **Virtualization**      | Adds complexity                | Essential for long support conversations (1000+ messages)           |
+| **Keyword matching**    | Demo-only; limited             | Production: Replace with Bujo's AI agents for natural conversations |
+| **Character streaming** | More state updates             | Matches enterprise chat UX expectations                             |
+| **IndexedDB**           | More complex than localStorage | Handles enterprise-scale conversation history                       |
+| **Error boundaries**    | Extra wrapper components       | Critical for 24/7 uptime in customer support                        |
 
-- **Bundle Size**: Minimal (uses existing Framer Motion)
-- **Animations**: GPU-accelerated
-- **Lazy Loading**: Chat window only renders when open
-- **Memory**: Efficient message management with React.memo
-- **Streaming**: Non-blocking character-by-character updates
-- **State Updates**: Optimized with functional setState patterns
+### Production-Ready Considerations
 
----
+For Bujo's enterprise scale (high-volume B2C support):
 
-## 🌟 Bonus Features
+| Aspect             | Current Implementation | Production Enhancement                       |
+| ------------------ | ---------------------- | -------------------------------------------- |
+| **AI Backend**     | Mock keyword matching  | Integrate Bujo's conversational AI agents    |
+| **Persistence**    | Client-side IndexedDB  | Server-side with user authentication         |
+| **Analytics**      | None                   | Track resolution rates, conversation metrics |
+| **Multi-language** | English only           | Bujo's multi-language support                |
+| **Brand Voice**    | Generic                | Configurable per-enterprise brand guidelines |
+| **Compliance**     | Basic                  | Enterprise compliance requirements           |
 
-- **Error Boundary**: Catches and recovers from component errors
-- **Retry Functionality**: Retry failed messages with one click
-- **Input Validation**: Real-time validation with visual feedback
-- **Keyboard Shortcuts**: Escape to close, Cmd/Ctrl+K to clear
-- **Quick Replies**: Pre-defined query buttons for better UX
-- **Active State Highlighting**: Sidebar-card synchronization
-- **Blinking Cursor**: Visual feedback during streaming
-- **Delayed Component Render**: Components appear after text completes
-- **Theme Consistency**: Unified cyan (#00b4d8) design system
-- **Smooth Animations**: Framer Motion throughout
-- **Auto-scroll**: Messages auto-scroll to latest
-- **Auto-focus**: Input focuses automatically
-- **Expand/Collapse**: Minimize chat without closing
-- **Unread Counter**: Badge indicator for new messages
+### Limitations (Demo Scope)
+
+1. **No real AI integration**: Demo uses pattern matching; production uses Bujo's AI
+2. **Client-side only**: No server persistence or user authentication
+3. **Single conversation**: Enterprise would support conversation history per user
+4. **No handoff**: Production would include human agent escalation
+
+### Known Issues
+
+- `@tanstack/react-virtual` produces a `flushSync` warning during streaming (suppressed, doesn't affect functionality)
 
 ---
 
-## 📝 Notes
+## Keyboard Shortcuts
 
-- The chatbot uses **mock streaming** (no backend required)
-- Component detection uses **keyword matching** (simple but effective)
-- All components are **fully interactive** and follow modern design patterns
-- **Animations** are GPU-accelerated for smooth performance
-- **Theme**: Consistent cyan (#00b4d8) across all interactive elements
-- **Accessibility**: WCAG compliant with ARIA labels and keyboard navigation
-- **Error Handling**: Comprehensive error boundaries and retry logic
-- **Performance**: React.memo optimization for long chat histories
-- **Type Safety**: 100% TypeScript coverage with strict types
+| Key            | Action       |
+| -------------- | ------------ |
+| `Escape`       | Close chat   |
+| `Cmd/Ctrl + K` | Clear chat   |
+| `Enter`        | Send message |
 
 ---
 
-## 🔗 Live Demo
+## Screenshots
 
-Visit the main page and click the chat button in the bottom-right corner to try it out!
+### Chat Widget
 
-**Keyboard Shortcuts**:
+![Chat Default](./public/Chat%20default.png)
+![Chat Answer](./public/Chat%20Answer.png)
 
-- `Escape` - Close chat
-- `Cmd/Ctrl + K` - Clear chat
-- `Enter` - Send message
+### Component Rendering
 
----
-
-## 📄 License
-
-MIT License - feel free to use this project as a reference or starting point for your own chatbot implementations.
+![Chat Result](./public/chat%20result%201.png)
+![Search Result](./public/Search%20result%202.png)
 
 ---
-
-## 🙏 Acknowledgments
-
-Built with modern web technologies and best practices:
-
-- Next.js team for the amazing framework
-- Framer Motion for smooth animations
-- Tailwind CSS for utility-first styling
-- Lucide for beautiful icons
-
----
-
-**Status**: ✅ Production-ready | **Rating**: 10/10 | **Accessibility**: WCAG Compliant

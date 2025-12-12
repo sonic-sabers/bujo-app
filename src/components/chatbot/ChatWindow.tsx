@@ -1,7 +1,30 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+  useLayoutEffect,
+} from "react";
 import { motion } from "framer-motion";
+import { useVirtualizer } from "@tanstack/react-virtual";
+
+// Suppress flushSync warning from @tanstack/react-virtual (known issue, doesn't affect functionality)
+// See: https://github.com/TanStack/virtual/issues/578
+if (typeof window !== "undefined") {
+  const originalError = console.error;
+  console.error = (...args: unknown[]) => {
+    if (
+      typeof args[0] === "string" &&
+      args[0].includes("flushSync was called from inside a lifecycle method")
+    ) {
+      return;
+    }
+    originalError.apply(console, args);
+  };
+}
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
@@ -14,9 +37,15 @@ import { type Message } from "../../types/chat";
 
 interface ChatWindowProps {
   onClose: () => void;
+  themeColor?: string;
+  position?: "bottom-right" | "bottom-left";
 }
 
-export function ChatWindow({ onClose }: ChatWindowProps) {
+export function ChatWindow({
+  onClose,
+  themeColor = "#00b4d8",
+  position = "bottom-right",
+}: ChatWindowProps) {
   const {
     messages,
     isTyping,
@@ -28,23 +57,152 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
   } = useChatState();
 
   const [showQuickReplies, setShowQuickReplies] = useState(true);
-  const quickReplies = [
-    "Show me button variations",
-    "Display card examples",
-    "Input field types",
-    "Chat bubble styles",
-  ];
+  const quickReplies = useMemo(
+    () => [
+      "Show me button variations",
+      "Display card examples",
+      "Input field types",
+      "Chat bubble styles",
+    ],
+    []
+  );
   const [isExpanded, setIsExpanded] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
   const keyboardHeight = useKeyboardHeight();
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const lastScrollTimeRef = useRef<number>(0);
+  const isUserScrollingRef = useRef<boolean>(false);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const measurementQueueRef = useRef<Set<HTMLElement>>(new Set());
+  const measurementScheduledRef = useRef(false);
+
+  const virtualizer = useVirtualizer({
+    count: messages.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: useCallback(() => 100, []),
+    overscan: 5,
+    getItemKey: useCallback(
+      (index: number) => messages[index]?.id ?? index,
+      [messages]
+    ),
+  });
+
+  // Note: flushSync warning is a known issue with @tanstack/react-virtual v3
+  // It doesn't affect functionality - see: https://github.com/TanStack/virtual/issues/578
+  // The warning occurs during streaming but virtualization works correctly
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalSize = virtualizer.getTotalSize();
+
+  // Wrap measureElement to avoid flushSync warning during render
+  // Uses batched setTimeout to ensure measurements happen outside React's render cycle
+  const measureElement = useCallback(
+    (node: HTMLElement | null) => {
+      if (node) {
+        measurementQueueRef.current.add(node);
+
+        if (!measurementScheduledRef.current) {
+          measurementScheduledRef.current = true;
+          // Use setTimeout(0) to escape React's render cycle completely
+          setTimeout(() => {
+            measurementScheduledRef.current = false;
+            const nodes = Array.from(measurementQueueRef.current);
+            measurementQueueRef.current.clear();
+
+            // Batch all measurements in a single frame
+            nodes.forEach((n) => {
+              if (n.isConnected) {
+                virtualizer.measureElement(n);
+              }
+            });
+          }, 0);
+        }
+      }
+    },
+    [virtualizer]
+  );
+
+  // Scroll to bottom helper - direct DOM manipulation for reliability
+  const scrollToBottomDirect = useCallback(() => {
+    if (isUserScrollingRef.current) return;
+    if (parentRef.current) {
+      parentRef.current.scrollTop = parentRef.current.scrollHeight;
+    }
+  }, []);
+
+  // Get the last message for scroll detection
+  const lastMessage = messages[messages.length - 1];
+  const lastMessageContent = lastMessage?.content ?? "";
+  const isLastMessageStreaming = lastMessage?.isStreaming ?? false;
+
+  // Scroll on new messages
+  useEffect(() => {
+    if (!isUserScrollingRef.current) {
+      // Small delay to allow DOM to update
+      const timer = setTimeout(scrollToBottomDirect, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [messages.length, isTyping, scrollToBottomDirect]);
+
+  // Auto-scroll during streaming content updates
+  useEffect(() => {
+    if (isLastMessageStreaming && !isUserScrollingRef.current) {
+      requestAnimationFrame(scrollToBottomDirect);
+    }
+  }, [lastMessageContent, isLastMessageStreaming, scrollToBottomDirect]);
+
+  // Scroll when streaming ends (component appears)
+  useEffect(() => {
+    if (!isLastMessageStreaming && lastMessage && !isUserScrollingRef.current) {
+      // Delay to allow component to render
+      const timer = setTimeout(scrollToBottomDirect, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isLastMessageStreaming, lastMessage, scrollToBottomDirect]);
+
+  const handleScroll = useCallback(() => {
+    if (!parentRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = parentRef.current;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+
+    if (!isNearBottom) {
+      isUserScrollingRef.current = true;
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      scrollTimeoutRef.current = setTimeout(() => {
+        isUserScrollingRef.current = false;
+      }, 2000);
+    } else {
+      isUserScrollingRef.current = false;
+    }
+  }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handle resize - remeasure virtualizer when container size changes
+  useEffect(() => {
+    const handleResize = () => {
+      virtualizer.measure();
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [virtualizer]);
+
+  // Scroll to bottom on initial load
+  useEffect(() => {
+    if (messages.length > 0 && !isUserScrollingRef.current) {
+      const timer = setTimeout(scrollToBottomDirect, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [scrollToBottomDirect]);
 
   const handleSendMessage = async (content: string) => {
     setShowQuickReplies(false);
@@ -77,6 +235,7 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
   return (
     <ChatErrorBoundary>
       <motion.div
+        onClick={() => !isExpanded && setIsExpanded(!isExpanded)}
         initial={{ opacity: 0, scale: 0.8, y: 20 }}
         animate={{
           opacity: 1,
@@ -90,8 +249,11 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
           scale: { type: "spring", stiffness: 300, damping: 25 },
           y: { type: "spring", stiffness: 300, damping: 25 },
         }}
-        className="fixed right-6 z-40 w-96 max-w-[calc(100vw-3rem)] md:w-96 bg-[#00b4d8] rounded-2xl shadow-2xl flex flex-col overflow-hidden p-[2px]"
+        className={`fixed ${
+          position === "bottom-left" ? "left-6" : "right-6"
+        } z-40 w-96 max-w-[calc(100vw-3rem)] md:w-96 rounded-2xl shadow-2xl flex flex-col overflow-hidden p-[2px]`}
         style={{
+          backgroundColor: themeColor,
           bottom: `${Math.max(96, keyboardHeight + 16)}px`,
           minHeight: isExpanded
             ? keyboardHeight > 0
@@ -112,13 +274,15 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
         <div className="bg-white rounded-[calc(1rem-2px)] h-full flex flex-col overflow-hidden">
           {/* Header */}
           <div
-            className="bg-[#00b4d8] p-4 flex items-center justify-between rounded-t-[calc(1rem-2px)]"
+            className="p-4 flex items-center justify-between rounded-t-[calc(1rem-2px)]"
+            style={{ backgroundColor: themeColor }}
             role="banner"
           >
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md flex-shrink-0">
                 <svg
-                  className="w-6 h-6 text-[#00b4d8]"
+                  className="w-6 h-6"
+                  style={{ color: themeColor }}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -193,10 +357,12 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
           {/* Messages */}
           {isExpanded && (
             <div
-              className="chat-messages flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gray-50 min-h-[280px] md:min-h-[440px]"
+              ref={parentRef}
+              className="chat-messages flex-1 overflow-y-auto p-3 md:p-4 bg-gray-50 min-h-[280px] md:min-h-[440px]"
               role="log"
               aria-live="polite"
               aria-label="Chat messages"
+              onScroll={handleScroll}
               onWheel={(e) => {
                 const element = e.currentTarget;
                 const isAtTop = element.scrollTop === 0;
@@ -204,30 +370,62 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
                   element.scrollHeight - element.scrollTop ===
                   element.clientHeight;
 
-                // Prevent outer scroll when scrolling within bounds
                 if (
-                  (e.deltaY < 0 && !isAtTop) || // Scrolling up and not at top
-                  (e.deltaY > 0 && !isAtBottom) // Scrolling down and not at bottom
+                  (e.deltaY < 0 && !isAtTop) ||
+                  (e.deltaY > 0 && !isAtBottom)
                 ) {
                   e.stopPropagation();
                 }
               }}
             >
-              {messages.map((message: Message, index: number) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  index={index}
-                  isLastStreamingMessage={
-                    message.isStreaming && index === messages.length - 1
-                  }
-                />
-              ))}
-              {isTyping && <TypingIndicator />}
+              <div
+                style={{
+                  height: `${totalSize}px`,
+                  width: "100%",
+                  position: "relative",
+                }}
+              >
+                {virtualItems.map((virtualRow) => {
+                  const message = messages[virtualRow.index];
+                  if (!message) return null;
+
+                  return (
+                    <div
+                      key={virtualRow.key}
+                      data-index={virtualRow.index}
+                      ref={measureElement}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                      className="py-1.5 md:py-2"
+                    >
+                      <ChatMessage
+                        message={message}
+                        index={virtualRow.index}
+                        totalMessages={messages.length}
+                        isLastStreamingMessage={
+                          message.isStreaming &&
+                          virtualRow.index === messages.length - 1
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {isTyping && (
+                <div className="py-1.5 md:py-2">
+                  <TypingIndicator />
+                </div>
+              )}
 
               {error && (
                 <div
-                  className="p-3 bg-red-50 border border-red-200 rounded-lg"
+                  className="p-3 bg-red-50 border border-red-200 rounded-lg my-2"
                   role="alert"
                 >
                   <p className="text-sm text-red-800">{error}</p>
@@ -246,8 +444,6 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
                   onSelect={handleSendMessage}
                 />
               )}
-
-              <div ref={messagesEndRef} />
             </div>
           )}
 

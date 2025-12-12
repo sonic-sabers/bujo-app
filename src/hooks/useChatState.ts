@@ -21,6 +21,13 @@ export function useChatState(options: UseChatStateOptions = {}) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const cancelStreamRef = useRef<(() => void) | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const messagesRef = useRef<Message[]>(messages);
+
+  // Keep messagesRef in sync with messages state
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   // Load messages from storage on mount
   useEffect(() => {
@@ -78,17 +85,28 @@ export function useChatState(options: UseChatStateOptions = {}) {
   }, [debouncedMessages, isLoaded, isStreaming]);
 
   // Save immediately on unmount to prevent data loss
+  // Uses ref to get latest messages without stale closure
   useEffect(() => {
     return () => {
-      if (messages.length > 0) {
+      // Cleanup timers
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+      if (cancelStreamRef.current) {
+        cancelStreamRef.current();
+        cancelStreamRef.current = null;
+      }
+      // Save latest messages from ref (avoids stale closure)
+      if (messagesRef.current.length > 0) {
         getChatStorage()
-          .saveMessages(messages)
+          .saveMessages(messagesRef.current)
           .catch((error) => {
             console.error("Failed to save messages on unmount:", error);
           });
       }
     };
-  }, [messages]);
+  }, []);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -122,7 +140,7 @@ export function useChatState(options: UseChatStateOptions = {}) {
         const responseText = parsed.response;
 
         // Show typing indicator for 800ms before bot starts replying
-        setTimeout(() => {
+        typingTimeoutRef.current = setTimeout(() => {
           setIsTyping(false);
 
           // Create assistant message and start streaming
@@ -139,19 +157,39 @@ export function useChatState(options: UseChatStateOptions = {}) {
 
           setMessages((prev) => [...prev, assistantMessage]);
 
-          // Stream the response text character by character
+          // Stream the response text with batched updates for performance
           let streamedText = "";
+          let buffer = "";
+          const BATCH_SIZE = 3;
+          let updateScheduled = false;
+
+          const flushBuffer = () => {
+            if (buffer.length === 0) return;
+            streamedText += buffer;
+            buffer = "";
+            const currentText = streamedText;
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === messageId ? { ...msg, content: currentText } : msg
+              )
+            );
+          };
+
           const cancel = simulateStreamingResponse(
             responseText,
             (chunk: string) => {
-              streamedText += chunk;
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === messageId ? { ...msg, content: streamedText } : msg
-                )
-              );
+              buffer += chunk;
+              if (buffer.length >= BATCH_SIZE && !updateScheduled) {
+                updateScheduled = true;
+                requestAnimationFrame(() => {
+                  flushBuffer();
+                  updateScheduled = false;
+                });
+              }
             },
             () => {
+              // Flush any remaining buffer
+              flushBuffer();
               // Mark streaming as complete when done
               setMessages((prev) =>
                 prev.map((msg) =>
