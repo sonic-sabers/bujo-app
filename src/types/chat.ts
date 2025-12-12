@@ -18,6 +18,7 @@ export interface Message {
   role: Role;
   content: string;
   componentType?: ComponentType;
+  componentData?: Record<string, unknown>;
   isStreaming?: boolean;
   timestamp: Date;
 }
@@ -44,6 +45,7 @@ export interface StreamChunk {
   type: "text" | "component" | "done";
   content: string;
   componentType?: ComponentType;
+  componentData?: Record<string, unknown>;
 }
 
 export interface ChatState {

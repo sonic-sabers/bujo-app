@@ -4,6 +4,7 @@ export interface StreamChunkResponse {
   type: "text" | "done";
   content: string;
   componentType?: ComponentType;
+  componentData?: Record<string, unknown>;
 }
 // Info: I have added intentionally as dummy api call, currently its getting streamed from locally only.
 
@@ -19,7 +20,10 @@ export interface StreamChunkResponse {
 export async function sendChatMessage(
   message: string,
   onChunk: (chunk: string) => void,
-  onComplete: (componentType: ComponentType) => void,
+  onComplete: (
+    componentType: ComponentType,
+    componentData?: Record<string, unknown>
+  ) => void,
   onError: (error: Error) => void
 ): Promise<() => void> {
   const abortController = new AbortController();
@@ -46,6 +50,7 @@ export async function sendChatMessage(
     const decoder = new TextDecoder();
     let buffer = "";
     let finalComponentType: ComponentType = null;
+    let finalComponentData: Record<string, unknown> | undefined = undefined;
 
     const processStream = async () => {
       try {
@@ -53,7 +58,7 @@ export async function sendChatMessage(
           const { done, value } = await reader.read();
 
           if (done) {
-            onComplete(finalComponentType);
+            onComplete(finalComponentType, finalComponentData);
             break;
           }
 
@@ -72,8 +77,11 @@ export async function sendChatMessage(
                   if (parsed.componentType) {
                     finalComponentType = parsed.componentType;
                   }
+                  if (parsed.componentData) {
+                    finalComponentData = parsed.componentData;
+                  }
                 } else if (parsed.type === "done") {
-                  onComplete(finalComponentType);
+                  onComplete(finalComponentType, finalComponentData);
                   return;
                 }
               } catch (e) {

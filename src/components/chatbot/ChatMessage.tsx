@@ -8,11 +8,13 @@ import { ComponentRenderer } from "./ComponentRenderer";
 interface ChatMessageProps {
   message: Message;
   index: number;
+  isLastStreamingMessage?: boolean;
 }
 
 export const ChatMessage = memo(function ChatMessage({
   message,
   index,
+  isLastStreamingMessage = false,
 }: ChatMessageProps) {
   const isUser = message.role === "user";
 
@@ -76,7 +78,7 @@ export const ChatMessage = memo(function ChatMessage({
           >
             <p className="text-sm leading-relaxed whitespace-pre-wrap">
               {message.content}
-              {message.isStreaming && !isUser && (
+              {message.isStreaming && !isUser && isLastStreamingMessage && (
                 <motion.span
                   className="inline-block w-0.5 h-4 bg-[#00b4d8] ml-0.5"
                   animate={{ opacity: [1, 0, 1] }}
@@ -89,9 +91,14 @@ export const ChatMessage = memo(function ChatMessage({
               )}
             </p>
           </div>
-          {message.componentType && !isUser && !message.isStreaming && (
-            <ComponentRenderer componentType={message.componentType} />
-          )}
+          {(message.componentType || message.componentData) &&
+            !isUser &&
+            !message.isStreaming && (
+              <ComponentRenderer
+                componentType={message.componentType}
+                componentData={message.componentData}
+              />
+            )}
           <span
             className={`text-xs text-gray-500 mt-1 ${
               isUser ? "text-right" : "text-left"

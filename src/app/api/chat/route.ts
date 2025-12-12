@@ -1,8 +1,5 @@
 import { NextRequest } from "next/server";
-import {
-  parseComponentQuery,
-  getComponentResponse,
-} from "@/lib/componentParser";
+import { parseComponentFull } from "@/lib/componentParser";
 
 export const runtime = "edge";
 
@@ -15,10 +12,8 @@ export async function POST(req: NextRequest) {
       return new Response("Invalid message", { status: 400 });
     }
 
-    const componentType = parseComponentQuery(message);
-    const responseText = componentType
-      ? getComponentResponse(componentType)
-      : "I can help you explore our component library! Try asking about buttons, cards, inputs, or chat bubbles.";
+    const parsed = parseComponentFull(message);
+    const responseText = parsed.response;
 
     const encoder = new TextEncoder();
 
@@ -32,7 +27,8 @@ export async function POST(req: NextRequest) {
           const chunk = JSON.stringify({
             type: "text",
             content: char,
-            componentType: i === chars.length - 1 ? componentType : null,
+            componentType: i === chars.length - 1 ? parsed.componentType : null,
+            componentData: i === chars.length - 1 ? parsed.componentData : null,
           });
 
           controller.enqueue(encoder.encode(`data: ${chunk}\n\n`));

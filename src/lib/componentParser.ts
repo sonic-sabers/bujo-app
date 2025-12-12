@@ -1,4 +1,11 @@
-import { ComponentType } from "@/types/chat";
+import { ComponentType } from "../types/chat";
+
+export interface ParsedComponent {
+  type: "preset" | "dynamic";
+  componentType?: ComponentType;
+  componentData?: Record<string, unknown>;
+  response: string;
+}
 
 /**
  * Pattern matching configuration for component detection.
@@ -177,7 +184,7 @@ export function getComponentResponse(componentType: ComponentType): string {
 
   const responses: Record<string, string> = {
     "button-variants":
-      "Here are different button variations you can use: Primary for main actions, Secondary for less important actions, Ghost for subtle interactions, and Destructive for delete operations. Each button is interactive and follows modern design patterns.",
+      "Here are different button variations you can use: Primary for main actions, Secondary for less important actions and Ghost for subtle interactions. Each button is interactive and follows modern design patterns.",
 
     "card-variants":
       "I'll show you various card components: Default cards with subtle shadows, Elevated cards with prominent shadows for emphasis, Outlined cards with borders, and Gradient cards for eye-catching designs. All cards have hover animations.",
@@ -193,4 +200,253 @@ export function getComponentResponse(componentType: ComponentType): string {
   };
 
   return responses[componentType] || "Here are the components you requested:";
+}
+
+interface DynamicPattern {
+  patterns: string[];
+  response: string;
+  componentData: Record<string, unknown>;
+}
+
+const DYNAMIC_PATTERNS: DynamicPattern[] = [
+  // Single button variants
+  {
+    patterns: ["ghost button", "ghost btn"],
+    response:
+      "Here's a ghost button - subtle and minimal, perfect for secondary actions:",
+    componentData: { type: "button", variant: "ghost", text: "Ghost Button" },
+  },
+  {
+    patterns: ["primary button", "primary btn", "main button"],
+    response: "Here's a primary button - bold and prominent for main actions:",
+    componentData: {
+      type: "button",
+      variant: "primary",
+      text: "Primary Button",
+    },
+  },
+  {
+    patterns: ["secondary button", "secondary btn"],
+    response:
+      "Here's a secondary button - less prominent, for supporting actions:",
+    componentData: {
+      type: "button",
+      variant: "secondary",
+      text: "Secondary Button",
+    },
+  },
+  {
+    patterns: ["cta", "call to action", "action button"],
+    response:
+      "Here's a CTA button - designed to grab attention and drive conversions:",
+    componentData: { type: "button", variant: "primary", text: "Get Started" },
+  },
+  {
+    patterns: ["submit button", "submit btn"],
+    response: "Here's a submit button for forms:",
+    componentData: { type: "button", variant: "primary", text: "Submit" },
+  },
+  // Single card variants
+  {
+    patterns: ["elevated card", "shadow card"],
+    response: "Here's an elevated card with prominent shadow:",
+    componentData: { type: "card-group", variants: ["elevated"] },
+  },
+  {
+    patterns: ["gradient card"],
+    response: "Here's a gradient card for eye-catching designs:",
+    componentData: { type: "card-group", variants: ["gradient"] },
+  },
+  {
+    patterns: ["outlined card", "border card"],
+    response: "Here's an outlined card with border-only style:",
+    componentData: { type: "card-group", variants: ["outlined"] },
+  },
+  // Single input variants
+  {
+    patterns: ["email input", "email field"],
+    response: "Here's an email input field:",
+    componentData: {
+      type: "input-group",
+      inputs: [
+        {
+          name: "email",
+          label: "Email",
+          type: "email",
+          placeholder: "you@example.com",
+        },
+      ],
+    },
+  },
+  {
+    patterns: ["search input", "search field", "search box"],
+    response: "Here's a search input field:",
+    componentData: {
+      type: "input-group",
+      inputs: [
+        {
+          name: "search",
+          label: "Search",
+          type: "search",
+          placeholder: "Search...",
+        },
+      ],
+    },
+  },
+  {
+    patterns: ["password input", "password field"],
+    response: "Here's a password input field:",
+    componentData: {
+      type: "input-group",
+      inputs: [
+        {
+          name: "password",
+          label: "Password",
+          type: "password",
+          placeholder: "Enter password",
+        },
+      ],
+    },
+  },
+  // Chat bubble variants
+  {
+    patterns: ["user bubble", "user message"],
+    response: "Here's a user message bubble:",
+    componentData: {
+      type: "chat-group",
+      messages: [
+        { role: "user", text: "This is a user message", timestamp: "12:30" },
+      ],
+    },
+  },
+  {
+    patterns: ["assistant bubble", "bot message", "assistant message"],
+    response: "Here's an assistant message bubble:",
+    componentData: {
+      type: "chat-group",
+      messages: [
+        {
+          role: "assistant",
+          text: "This is an assistant response",
+          timestamp: "12:31",
+        },
+      ],
+    },
+  },
+  {
+    patterns: ["system message", "system bubble"],
+    response: "Here's a system message bubble:",
+    componentData: {
+      type: "chat-group",
+      messages: [{ role: "system", text: "System notification" }],
+    },
+  },
+  // Form elements
+  {
+    patterns: ["checkbox", "check box"],
+    response: "Here's a checkbox component:",
+    componentData: {
+      type: "checkbox",
+      props: { name: "agree", label: "I agree to the terms" },
+    },
+  },
+  {
+    patterns: ["contact form", "callback form"],
+    response: "Here's a contact form:",
+    componentData: {
+      type: "ui-group",
+      props: { title: "Contact Us" },
+      events: { onSubmit: "formSubmitDemo" },
+      components: [
+        {
+          type: "input",
+          props: { name: "name", label: "Name", placeholder: "Your name" },
+        },
+        {
+          type: "input",
+          props: {
+            name: "email",
+            label: "Email",
+            type: "email",
+            placeholder: "you@example.com",
+          },
+        },
+        { type: "button", variant: "primary", text: "Submit" },
+      ],
+    },
+  },
+  {
+    patterns: ["login form", "signin form", "sign in form"],
+    response: "Here's a login form:",
+    componentData: {
+      type: "ui-group",
+      props: { title: "Login" },
+      events: { onSubmit: "formSubmitDemo" },
+      components: [
+        {
+          type: "input",
+          props: {
+            name: "email",
+            label: "Email",
+            type: "email",
+            placeholder: "you@example.com",
+          },
+        },
+        {
+          type: "input",
+          props: {
+            name: "password",
+            label: "Password",
+            type: "password",
+            placeholder: "Password",
+          },
+        },
+        { type: "button", variant: "primary", text: "Sign In" },
+      ],
+    },
+  },
+];
+
+export function parseComponentFull(query: string): ParsedComponent {
+  if (!query || typeof query !== "string") {
+    return {
+      type: "preset",
+      response: "I can help you explore our component library!",
+    };
+  }
+
+  const lowerQuery = query.toLowerCase().trim();
+  if (!lowerQuery) {
+    return {
+      type: "preset",
+      response: "I can help you explore our component library!",
+    };
+  }
+
+  // Check dynamic patterns first (more specific)
+  for (const pattern of DYNAMIC_PATTERNS) {
+    if (pattern.patterns.some((p) => lowerQuery.includes(p))) {
+      return {
+        type: "dynamic",
+        componentData: pattern.componentData,
+        response: pattern.response,
+      };
+    }
+  }
+
+  // Fall back to preset component types
+  const componentType = parseComponentQuery(query);
+  if (componentType) {
+    return {
+      type: "preset",
+      componentType,
+      response: getComponentResponse(componentType),
+    };
+  }
+
+  return {
+    type: "preset",
+    response:
+      "I can help you explore our component library! Try asking about buttons, cards, inputs, or chat bubbles.",
+  };
 }

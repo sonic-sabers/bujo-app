@@ -1,11 +1,10 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { type Message } from "@/types/chat";
-import {
-  parseComponentQuery,
-  getComponentResponse,
-} from "@/lib/componentParser";
-import { simulateStreamingResponse } from "@/lib/streamingResponse";
+import { type Message } from "../types/chat";
+import { parseComponentFull } from "../lib/componentParser";
+import { simulateStreamingResponse } from "../lib/streamingResponse";
+import { getChatStorage } from "../lib/storage";
+import { useDebounce } from "./useDebounce";
 
 interface UseChatStateOptions {
   initialMessage?: string;
@@ -15,19 +14,81 @@ interface UseChatStateOptions {
 export function useChatState(options: UseChatStateOptions = {}) {
   const { initialMessage = "How can I help you today?", onError } = options;
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: uuidv4(),
-      role: "assistant",
-      content: initialMessage,
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const cancelStreamRef = useRef<(() => void) | null>(null);
+
+  // Load messages from storage on mount
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const storedMessages = await getChatStorage().loadMessages();
+        if (storedMessages.length > 0) {
+          setMessages(storedMessages);
+        } else {
+          // Add initial message if no stored messages
+          setMessages([
+            {
+              id: uuidv4(),
+              role: "assistant" as const,
+              content: initialMessage,
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+        // Fallback to initial message
+        setMessages([
+          {
+            id: uuidv4(),
+            role: "assistant" as const,
+            content: initialMessage,
+            timestamp: new Date(),
+          },
+        ]);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+
+    loadMessages();
+  }, [initialMessage]);
+
+  // Debounced messages for saving (prevents excessive writes during streaming)
+  const debouncedMessages = useDebounce(messages, 1000);
+
+  // Save messages to storage whenever they change (but not during streaming)
+  useEffect(() => {
+    if (!isLoaded || isStreaming) return;
+
+    const saveMessages = async () => {
+      try {
+        await getChatStorage().saveMessages(debouncedMessages);
+      } catch (error) {
+        console.error("Failed to save messages:", error);
+      }
+    };
+
+    saveMessages();
+  }, [debouncedMessages, isLoaded, isStreaming]);
+
+  // Save immediately on unmount to prevent data loss
+  useEffect(() => {
+    return () => {
+      if (messages.length > 0) {
+        getChatStorage()
+          .saveMessages(messages)
+          .catch((error) => {
+            console.error("Failed to save messages on unmount:", error);
+          });
+      }
+    };
+  }, [messages]);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -47,7 +108,7 @@ export function useChatState(options: UseChatStateOptions = {}) {
 
         const userMessage: Message = {
           id: uuidv4(),
-          role: "user",
+          role: "user" as const,
           content: content.trim(),
           timestamp: new Date(),
         };
@@ -57,24 +118,21 @@ export function useChatState(options: UseChatStateOptions = {}) {
         setIsStreaming(true);
 
         // Parse query for component requests
-        const componentType = parseComponentQuery(content);
+        const parsed = parseComponentFull(content);
+        const responseText = parsed.response;
 
-        // Get appropriate response
-        const responseText = componentType
-          ? getComponentResponse(componentType)
-          : "I can help you explore our component library! Try asking about buttons, cards, inputs, or chat bubbles.";
-
-        // Simulate thinking delay
+        // Show typing indicator for 800ms before bot starts replying
         setTimeout(() => {
           setIsTyping(false);
 
-          // Create initial message with empty content and streaming flag
+          // Create assistant message and start streaming
           const messageId = uuidv4();
           const assistantMessage: Message = {
             id: messageId,
-            role: "assistant",
+            role: "assistant" as const,
             content: "",
-            componentType,
+            componentType: parsed.componentType,
+            componentData: parsed.componentData,
             isStreaming: true,
             timestamp: new Date(),
           };
@@ -85,7 +143,7 @@ export function useChatState(options: UseChatStateOptions = {}) {
           let streamedText = "";
           const cancel = simulateStreamingResponse(
             responseText,
-            (chunk) => {
+            (chunk: string) => {
               streamedText += chunk;
               setMessages((prev) =>
                 prev.map((msg) =>
@@ -119,24 +177,33 @@ export function useChatState(options: UseChatStateOptions = {}) {
     [isStreaming, isTyping, onError]
   );
 
-  const clearChat = useCallback(() => {
+  const clearChat = useCallback(async () => {
     // Cancel any ongoing streaming
     if (cancelStreamRef.current) {
       cancelStreamRef.current();
       cancelStreamRef.current = null;
     }
 
-    setMessages([
+    const newMessages: Message[] = [
       {
         id: uuidv4(),
-        role: "assistant",
+        role: "assistant" as const,
         content: "Chat cleared! How can I help you?",
         timestamp: new Date(),
       },
-    ]);
+    ];
+
+    setMessages(newMessages);
     setIsTyping(false);
     setIsStreaming(false);
     setError(null);
+
+    // Save cleared state to storage
+    try {
+      await getChatStorage().saveMessages(newMessages);
+    } catch (error) {
+      console.error("Failed to save cleared chat:", error);
+    }
   }, []);
 
   const retryLastMessage = useCallback(() => {
@@ -162,6 +229,7 @@ export function useChatState(options: UseChatStateOptions = {}) {
     isTyping,
     isStreaming,
     error,
+    isLoaded,
     sendMessage,
     clearChat,
     retryLastMessage,

@@ -7,9 +7,10 @@ import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
 import { QuickReplies } from "./QuickReplies";
 import { ChatErrorBoundary } from "./ErrorBoundary";
-import { useChatState } from "@/hooks/useChatState";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
+import { useChatState } from "../../hooks/useChatState";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
+import { useKeyboardHeight } from "../../hooks/useKeyboardHeight";
+import { type Message } from "../../types/chat";
 
 interface ChatWindowProps {
   onClose: () => void;
@@ -192,7 +193,7 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
           {/* Messages */}
           {isExpanded && (
             <div
-              className="chat-messages flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gray-50 min-h-[280px] md:min-h-[320px]"
+              className="chat-messages flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gray-50 min-h-[280px] md:min-h-[440px]"
               role="log"
               aria-live="polite"
               aria-label="Chat messages"
@@ -212,8 +213,15 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
                 }
               }}
             >
-              {messages.map((message, index) => (
-                <ChatMessage key={message.id} message={message} index={index} />
+              {messages.map((message: Message, index: number) => (
+                <ChatMessage
+                  key={message.id}
+                  message={message}
+                  index={index}
+                  isLastStreamingMessage={
+                    message.isStreaming && index === messages.length - 1
+                  }
+                />
               ))}
               {isTyping && <TypingIndicator />}
 
