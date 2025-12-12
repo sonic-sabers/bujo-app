@@ -15,14 +15,6 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
-### Run Tests
-
-```bash
-npm install   # Install dependencies including Jest
-npm test      # Run all tests
-npm run test:watch  # Run tests in watch mode
-```
-
 ---
 
 ## Assignment Overview
